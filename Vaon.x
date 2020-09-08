@@ -8,7 +8,8 @@
 //option ot have ipad style switcher
 //check for landscape mode
 //add option to remove handoff/suggested apps banner that interferes with vaon
-
+//add option for vaon to fly up from the bottom	
+//add option to ovveride landscape hide 
 /**
 recent  phone calls
 favorite contacts
@@ -40,6 +41,17 @@ music player
 @property (nonatomic,readonly) CGRect dockListViewFrame;
 @end
 
+@interface SBFluidSwitcherViewController : UIViewController
+@end
+
+@interface SBDeckSwitcherViewController : SBFluidSwitcherViewController
+- (id)view;
+@end
+
+@interface SBFluidSwitcherTouchPassThroughScrollViewController : UIScrollView
+- (id)view;
+@end 
+
 
 UIView *vaonView;
 UIColor *vaonViewBackgroundColor;
@@ -47,62 +59,71 @@ UILabel *titleLabel;
 UIView *appSwitcherView;
 CGFloat dockWidth;
 BOOL vaonViewIsInitialized = FALSE;
+UIDeviceOrientation deviceOrientation;
 
 %hook SBSwitcherAppSuggestionContentView
 
--(void)didMoveToWindow {
-	%orig;
-	if(!vaonViewIsInitialized){
-		// vaonViewBackgroundColor = [[UIColor colorWithRed: 0.0/255.0
-		// green: 0.0/255.0
-		// blue: 255.0/255.0
-		// alpha: 1.0] init];
-		vaonViewBackgroundColor = [UIColor colorNamed:@"clearColor"];
-		vaonView = [[UIView alloc] init];
-		vaonView.frame = CGRectMake(500, 500, 500, 500);
-		vaonView.clipsToBounds = TRUE;
-		vaonView.layer.cornerRadius = 15;
-		vaonView.alpha = 0;
-		vaonView.backgroundColor = vaonViewBackgroundColor;
+	-(void)didMoveToWindow {
+		%orig;
+
+		// UIInterfaceOrientation appSwitcherOrientation = [UIApplication sharedApplication].windows[0].windowScene.interfaceOrientation;
+		deviceOrientation = [UIDevice currentDevice].orientation;
+
+		if(!vaonViewIsInitialized){
+			// vaonViewBackgroundColor = [[UIColor colorWithRed: 0.0/255.0
+			// green: 0.0/255.0
+			// blue: 255.0/255.0
+			// alpha: 1.0] init];
+			vaonViewBackgroundColor = [UIColor colorNamed:@"clearColor"];
+			vaonView = [[UIView alloc] init];
+			vaonView.frame = CGRectMake(500, 500, 500, 500);
+			vaonView.clipsToBounds = TRUE;
+			vaonView.layer.cornerRadius = 15;
+			vaonView.alpha = 0;
+			vaonView.backgroundColor = vaonViewBackgroundColor;
 
 
 
-		UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+			UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
 
-		UIVisualEffectView *vaonBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
-		vaonBlurView.frame = vaonView.bounds;
-		vaonBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-		[vaonView addSubview:vaonBlurView];
+			UIVisualEffectView *vaonBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+			vaonBlurView.frame = vaonView.bounds;
+			vaonBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+			[vaonView addSubview:vaonBlurView];
 
-		titleLabel = [[UILabel alloc] initWithFrame:vaonView.bounds];
-		titleLabel.text = @"Vaon";
-		CGFloat titleLabelFontSize = 22;
-		UIFont *titleFont = [UIFont systemFontOfSize:titleLabelFontSize];
-		titleLabel.font = titleFont;
-		titleLabel.textAlignment = NSTextAlignmentLeft;
-		titleLabel.textColor = [UIColor whiteColor];
+			titleLabel = [[UILabel alloc] initWithFrame:vaonView.bounds];
+			titleLabel.text = @"Vaon";
+			CGFloat titleLabelFontSize = 22;
+			UIFont *titleFont = [UIFont systemFontOfSize:titleLabelFontSize];
+			titleLabel.font = titleFont;
+			titleLabel.textAlignment = NSTextAlignmentLeft;
+			titleLabel.textColor = [UIColor whiteColor];
 
-		[vaonView addSubview:titleLabel];
+			[vaonView addSubview:titleLabel];
 
-		titleLabel.translatesAutoresizingMaskIntoConstraints = false;
-		[titleLabel.centerXAnchor constraintEqualToAnchor:vaonView.centerXAnchor].active = YES;
-		[titleLabel.centerYAnchor constraintEqualToAnchor:vaonView.centerYAnchor].active = YES;
+			titleLabel.translatesAutoresizingMaskIntoConstraints = false;
+			[titleLabel.centerXAnchor constraintEqualToAnchor:vaonView.centerXAnchor].active = YES;
+			[titleLabel.centerYAnchor constraintEqualToAnchor:vaonView.centerYAnchor].active = YES;
 
-		[self addSubview:vaonView];
+			[self addSubview:vaonView];
 
-		vaonView.translatesAutoresizingMaskIntoConstraints = false;
-		[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = YES;
-		[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
-		[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = YES;
-		[vaonView.heightAnchor constraintEqualToConstant:113].active = YES;
+			vaonView.translatesAutoresizingMaskIntoConstraints = false;
+			[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = YES;
+			[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
+			[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = YES;
+			[vaonView.heightAnchor constraintEqualToConstant:113].active = YES;
 
 
-		vaonViewIsInitialized = TRUE;
+			vaonViewIsInitialized = TRUE;
+		}
+
+		if(UIDeviceOrientationIsPortrait(deviceOrientation)){
+			[UIView animateWithDuration:0.3 animations:^ {
+				vaonView.alpha = 1;
+			}];
+		}
+		
 	}
-	[UIView animateWithDuration:0.3 animations:^ {
-		vaonView.alpha = 1;
-	}];
-}
 %end
 
 %hook SBMainSwitcherViewController
@@ -110,17 +131,14 @@ BOOL vaonViewIsInitialized = FALSE;
 	-(void)viewDidLoad {
 		%orig;
 		appSwitcherView =  self.view;
-		dockWidth = appSwitcherView.frame.size.width*0.943;
-
-		HBLogWarn(@"AZIZ %f",dockWidth);
-		
-
+		dockWidth = appSwitcherView.frame.size.width*0.943;		
 	}
+
 	-(void)switcherContentController:(id)arg1 setContainerStatusBarHidden:(BOOL)arg2 animationDuration:(double)arg3 {
 		if (arg2 == FALSE) {
-				[UIView animateWithDuration:0.2 animations:^ {
-					vaonView.alpha = 0;
-				}];
+			[UIView animateWithDuration:0.2 animations:^ {
+				vaonView.alpha = 0;
+			}];
 		}
 		%orig;
 	}
@@ -135,23 +153,36 @@ BOOL vaonViewIsInitialized = FALSE;
 // 	return %orig;
 // }
 
-
-
 %end
 
 %hook SBFluidSwitcherViewController
 
 	-(void)shouldAddAppLayoutToFront: (id)arg1 forTransitionWithContext:(id)arg2 transitionCompleted:(BOOL)arg3{
 		%orig;
-	
-			[UIView animateWithDuration:0.1 animations:^ {
-				vaonView.alpha = 0;
-			}];
-
+		[UIView animateWithDuration:0.1 animations:^ {
+			vaonView.alpha = 0;
+		}];
 	}
 
 %end
 
 
+%hook SBDeckSwitcherViewController
+	-(void)viewDidLoad {
+		%orig;
+		// self.view.alpha = 0.2;
+		// self.view.translatesAutoresizingMaskIntoConstraints = false;
+		// [self.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:-100].active = YES;
+
+
+	}
+%end
+
+%hook SBFluidSwitcherTouchPassThroughScrollViewController
+	-(void)viewDidLoad {
+		%orig;
+		// [vaonView.topAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:20].active = YES;
+	}
+%end
 
 
