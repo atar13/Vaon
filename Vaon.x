@@ -4,6 +4,19 @@
 //raise the normal apps
 //move vaonView to the bottom
 //add customtext option to the top/bottom of vaon view
+//option for a split view of two widgets
+//option ot have ipad style switcher
+//check for landscape mode
+//add option to remove handoff/suggested apps banner that interferes with vaon
+
+/**
+recent  phone calls
+favorite contacts
+device batteries
+favorited apps
+music player
+**/
+
 
 #import <Cephei/HBPreferences.h>
 
@@ -15,10 +28,24 @@
 @interface SBSwitcherAppSuggestionContentView : UIView
 @end
 
+@interface SBFluidSwitcherItemContainer
+// @property (nonatomic,retain) UIView* contentView;
+@end
+
+@interface SBAppSwitcherPageView : UIView 
+@end
+
+@interface SBDockView : UIView
++ (id)sharedInstance;
+@property (nonatomic,readonly) CGRect dockListViewFrame;
+@end
+
 
 UIView *vaonView;
 UIColor *vaonViewBackgroundColor;
 UILabel *titleLabel;
+UIView *appSwitcherView;
+CGFloat dockWidth;
 BOOL vaonViewIsInitialized = FALSE;
 
 %hook SBSwitcherAppSuggestionContentView
@@ -34,8 +61,8 @@ BOOL vaonViewIsInitialized = FALSE;
 		vaonView = [[UIView alloc] init];
 		vaonView.frame = CGRectMake(500, 500, 500, 500);
 		vaonView.clipsToBounds = TRUE;
-		vaonView.layer.cornerRadius = 10;
-		vaonView.alpha = 1;
+		vaonView.layer.cornerRadius = 15;
+		vaonView.alpha = 0;
 		vaonView.backgroundColor = vaonViewBackgroundColor;
 
 
@@ -48,11 +75,11 @@ BOOL vaonViewIsInitialized = FALSE;
 		[vaonView addSubview:vaonBlurView];
 
 		titleLabel = [[UILabel alloc] initWithFrame:vaonView.bounds];
-		titleLabel.text = @"Xeris";
-		CGFloat titleLabelFontSize = 15;
+		titleLabel.text = @"Vaon";
+		CGFloat titleLabelFontSize = 22;
 		UIFont *titleFont = [UIFont systemFontOfSize:titleLabelFontSize];
 		titleLabel.font = titleFont;
-		titleLabel.textAlignment = NSTextAlignmentCenter;
+		titleLabel.textAlignment = NSTextAlignmentLeft;
 		titleLabel.textColor = [UIColor whiteColor];
 
 		[vaonView addSubview:titleLabel];
@@ -61,14 +88,13 @@ BOOL vaonViewIsInitialized = FALSE;
 		[titleLabel.centerXAnchor constraintEqualToAnchor:vaonView.centerXAnchor].active = YES;
 		[titleLabel.centerYAnchor constraintEqualToAnchor:vaonView.centerYAnchor].active = YES;
 
-
 		[self addSubview:vaonView];
-		vaonView.translatesAutoresizingMaskIntoConstraints = false;
-		[vaonView.topAnchor constraintEqualToAnchor:self.topAnchor constant:40].active = YES;
-		[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
-		[vaonView.widthAnchor constraintEqualToConstant:100].active = YES;
-		[vaonView.heightAnchor constraintEqualToConstant:35].active = YES;
 
+		vaonView.translatesAutoresizingMaskIntoConstraints = false;
+		[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = YES;
+		[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
+		[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = YES;
+		[vaonView.heightAnchor constraintEqualToConstant:113].active = YES;
 
 
 		vaonViewIsInitialized = TRUE;
@@ -80,32 +106,52 @@ BOOL vaonViewIsInitialized = FALSE;
 %end
 
 %hook SBMainSwitcherViewController
+
+	-(void)viewDidLoad {
+		%orig;
+		appSwitcherView =  self.view;
+		dockWidth = appSwitcherView.frame.size.width*0.943;
+
+		HBLogWarn(@"AZIZ %f",dockWidth);
+		
+
+	}
 	-(void)switcherContentController:(id)arg1 setContainerStatusBarHidden:(BOOL)arg2 animationDuration:(double)arg3 {
 		if (arg2 == FALSE) {
-				[UIView animateWithDuration:0.3 animations:^ {
+				[UIView animateWithDuration:0.2 animations:^ {
 					vaonView.alpha = 0;
 				}];
 		}
 		%orig;
 	}
 
-	// -(BOOL)_dismissSwitcherNoninteractivelyToAppLayout:(id)arg1 dismissFloatingSwitcher:(BOOL)arg2 animated:(BOOL)arg3 {
-	// 	if(arg2 == FALSE){
-	// 	HBLogWarn(@"VONC");
-	// 	}
-	// 	return %orig;
-	// }
 
--(id)appLayoutsForSwitcherContentController:(id)arg1 {
-	if(vaonView.alpha!=0){
-		HBLogWarn(@"AXPER");
-		[UIView animateWithDuration:0.3 animations:^ {
-			vaonView.alpha = 0;
-		}];
-	}
-	return %orig;
-}
+// -(id)appLayoutsForSwitcherContentController:(id)arg1 {
+// 	if(vaonView.alpha!=0){
+// 		[UIView animateWithDuration:0.3 animations:^ {
+// 			// vaonView.alpha = 0;
+// 		}];
+// 	}
+// 	return %orig;
+// }
+
 
 
 %end
+
+%hook SBFluidSwitcherViewController
+
+	-(void)shouldAddAppLayoutToFront: (id)arg1 forTransitionWithContext:(id)arg2 transitionCompleted:(BOOL)arg3{
+		%orig;
+	
+			[UIView animateWithDuration:0.1 animations:^ {
+				vaonView.alpha = 0;
+			}];
+
+	}
+
+%end
+
+
+
 
