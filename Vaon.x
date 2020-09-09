@@ -161,9 +161,16 @@ SBMainSwitcherViewController *mainAppSwitcherVC;
 	}
 
 	-(void)_configureRequest:(id)arg1 forSwitcherTransitionRequest:(id)arg2 withEventLabel:(id)arg3 {
-		[UIView animateWithDuration:0.2 animations:^ {
-			vaonView.alpha = 0;
-		}];
+
+		NSString *switcherTransitionRequest = [[NSString alloc] initWithFormat:@"%@", arg2];
+		NSUInteger indexAfterAppLayout =  [switcherTransitionRequest rangeOfString: @"appLayout: "].location;
+		NSString *appLayoutString = [switcherTransitionRequest substringFromIndex:indexAfterAppLayout];
+
+		if(![appLayoutString containsString:@"appLayout: 0x0;"]){		
+			[UIView animateWithDuration:0.2 animations:^ {
+				vaonView.alpha = 0;
+			}];
+		}
 		%orig;
 	}
 
