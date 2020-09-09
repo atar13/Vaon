@@ -23,7 +23,7 @@ music player
 
 @interface SBMainSwitcherViewController : UIViewController
 + (id)sharedInstance;
-
+-(long long)sbActiveInterfaceOrientation;
 @end
 
 @interface SBSwitcherAppSuggestionContentView : UIView
@@ -45,21 +45,33 @@ music player
 @end
 
 @interface SBDeckSwitcherViewController : SBFluidSwitcherViewController
-- (id)view;
 @end
 
 @interface SBFluidSwitcherTouchPassThroughScrollViewController : UIScrollView
 - (id)view;
 @end 
 
+@interface SBFView : UIView
+@end
+
+@interface SBAppSwitcherPageShadowView :SBFView 
+@end
+
+@interface SBFluidSwitcherContentView : UIView
+@end
+
+
 
 UIView *vaonView;
 UIColor *vaonViewBackgroundColor;
 UILabel *titleLabel;
-UIView *appSwitcherView;
+// UIView *appSwitcherView;
 CGFloat dockWidth;
 BOOL vaonViewIsInitialized = FALSE;
 UIDeviceOrientation deviceOrientation;
+NSLayoutYAxisAnchor *appSwitcherBottomAnchor;
+long long sbAppSwitcherOrientation;
+SBMainSwitcherViewController *mainAppSwitcherVC;
 
 %hook SBSwitcherAppSuggestionContentView
 
@@ -68,6 +80,7 @@ UIDeviceOrientation deviceOrientation;
 
 		// UIInterfaceOrientation appSwitcherOrientation = [UIApplication sharedApplication].windows[0].windowScene.interfaceOrientation;
 		deviceOrientation = [UIDevice currentDevice].orientation;
+		CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
 
 		if(!vaonViewIsInitialized){
 			// vaonViewBackgroundColor = [[UIColor colorWithRed: 0.0/255.0
@@ -111,16 +124,18 @@ UIDeviceOrientation deviceOrientation;
 			[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = YES;
 			[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
 			[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = YES;
-			[vaonView.heightAnchor constraintEqualToConstant:113].active = YES;
+			[vaonView.heightAnchor constraintEqualToConstant:(0.12*mainScreen)].active = YES;
 
 
 			vaonViewIsInitialized = TRUE;
 		}
 
-		if(UIDeviceOrientationIsPortrait(deviceOrientation)){
-			[UIView animateWithDuration:0.3 animations:^ {
+		if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
+		// if(UIDeviceOrientationIsPortrait(deviceOrientation)){
+			[UIView animateWithDuration:0.4 animations:^ {
 				vaonView.alpha = 1;
 			}];
+		// }
 		}
 		
 	}
@@ -130,8 +145,10 @@ UIDeviceOrientation deviceOrientation;
 
 	-(void)viewDidLoad {
 		%orig;
-		appSwitcherView =  self.view;
-		dockWidth = appSwitcherView.frame.size.width*0.943;		
+		mainAppSwitcherVC = self;
+		// appSwitcherView =  self.view;
+		dockWidth = mainAppSwitcherVC.view.frame.size.width*0.943;	
+		// appSwitcherBottomAnchor = self.view.subviews[0].subviews[0].subviews[0].subviews[0].subviews[0].subviews[0].bottomAnchor;
 	}
 
 	-(void)switcherContentController:(id)arg1 setContainerStatusBarHidden:(BOOL)arg2 animationDuration:(double)arg3 {
@@ -143,6 +160,12 @@ UIDeviceOrientation deviceOrientation;
 		%orig;
 	}
 
+	-(void)_configureRequest:(id)arg1 forSwitcherTransitionRequest:(id)arg2 withEventLabel:(id)arg3 {
+		[UIView animateWithDuration:0.2 animations:^ {
+			vaonView.alpha = 0;
+		}];
+		%orig;
+	}
 
 // -(id)appLayoutsForSwitcherContentController:(id)arg1 {
 // 	if(vaonView.alpha!=0){
@@ -157,12 +180,13 @@ UIDeviceOrientation deviceOrientation;
 
 %hook SBFluidSwitcherViewController
 
-	-(void)shouldAddAppLayoutToFront: (id)arg1 forTransitionWithContext:(id)arg2 transitionCompleted:(BOOL)arg3{
-		%orig;
-		[UIView animateWithDuration:0.1 animations:^ {
-			vaonView.alpha = 0;
-		}];
-	}
+	// -(void)shouldAddAppLayoutToFront: (id)arg1 forTransitionWithContext:(id)arg2 transitionCompleted:(BOOL)arg3{
+	// 	%orig;
+	// 	[UIView animateWithDuration:0.1 animations:^ {
+	// 		vaonView.alpha = 0;
+	// 	}];
+		
+	// }
 
 %end
 
@@ -170,12 +194,13 @@ UIDeviceOrientation deviceOrientation;
 %hook SBDeckSwitcherViewController
 	-(void)viewDidLoad {
 		%orig;
-		// self.view.alpha = 0.2;
-		// self.view.translatesAutoresizingMaskIntoConstraints = false;
-		// [self.view.topAnchor constraintEqualToAnchor:self.view.topAnchor constant:-100].active = YES;
 
+		// appSwitcherBottomAnchor = self.viewIfLoaded.subviews[1].subviews[0].bottomAnchor;
+		// [vaonView.topAnchor constraintEqualToAnchor:appSwitcherBottomAnchor].active = YES;
 
 	}
+
+
 %end
 
 %hook SBFluidSwitcherTouchPassThroughScrollViewController
