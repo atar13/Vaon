@@ -10,12 +10,15 @@
 //add option to remove handoff/suggested apps banner that interferes with vaon
 //add option for vaon to fly up from the bottom	
 //add option to ovveride landscape hide 
+//hide appname/icon from sbappswitchersettings
+//options for custom placement and resizing
 /**
 recent  phone calls
 favorite contacts
 device batteries
 favorited apps
 music player
+countdown 
 **/
 
 
@@ -24,6 +27,8 @@ music player
 @interface SBMainSwitcherViewController : UIViewController
 + (id)sharedInstance;
 -(long long)sbActiveInterfaceOrientation;
+-(BOOL)isMainSwitcherVisible;
+-(BOOL)isAnySwitcherVisible;
 @end
 
 @interface SBSwitcherAppSuggestionContentView : UIView
@@ -60,6 +65,15 @@ music player
 @interface SBFluidSwitcherContentView : UIView
 @end
 
+@interface SBAppSwitcherSettings
+@property (assign) double spacingBetweenTrailingEdgeAndLabels;
+@property (assign) double centerPoint;
+@property (assign) long long switcherStyle;
+@end
+
+@interface SBGridSwitcherViewController : SBFluidSwitcherViewController
+@end
+
 
 
 UIView *vaonView;
@@ -72,9 +86,16 @@ UIDeviceOrientation deviceOrientation;
 NSLayoutYAxisAnchor *appSwitcherBottomAnchor;
 long long sbAppSwitcherOrientation;
 SBMainSwitcherViewController *mainAppSwitcherVC;
+long long customSwitcherStyle = 2;
+long long currentSwitcherStyle; 
+BOOL appSwitcherOpen = FALSE;
+
+UIView *vaonGridView;
+
 
 %hook SBSwitcherAppSuggestionContentView
 
+	//creates vaonview for normal/non-grid app switcher 
 	-(void)didMoveToWindow {
 		%orig;
 
@@ -106,7 +127,7 @@ SBMainSwitcherViewController *mainAppSwitcherVC;
 
 			titleLabel = [[UILabel alloc] initWithFrame:vaonView.bounds];
 			titleLabel.text = @"Vaon";
-			CGFloat titleLabelFontSize = 22;
+			CGFloat titleLabelFontSize = 15;
 			UIFont *titleFont = [UIFont systemFontOfSize:titleLabelFontSize];
 			titleLabel.font = titleFont;
 			titleLabel.textAlignment = NSTextAlignmentLeft;
@@ -115,8 +136,8 @@ SBMainSwitcherViewController *mainAppSwitcherVC;
 			[vaonView addSubview:titleLabel];
 
 			titleLabel.translatesAutoresizingMaskIntoConstraints = false;
-			[titleLabel.centerXAnchor constraintEqualToAnchor:vaonView.centerXAnchor].active = YES;
-			[titleLabel.centerYAnchor constraintEqualToAnchor:vaonView.centerYAnchor].active = YES;
+			[titleLabel.topAnchor constraintEqualToAnchor:vaonView.topAnchor constant:5].active = YES;
+			[titleLabel.leftAnchor constraintEqualToAnchor:vaonView.leftAnchor constant:10].active = YES;
 
 			[self addSubview:vaonView];
 
@@ -131,12 +152,11 @@ SBMainSwitcherViewController *mainAppSwitcherVC;
 		}
 
 		if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
-		// if(UIDeviceOrientationIsPortrait(deviceOrientation)){
 			[UIView animateWithDuration:0.4 animations:^ {
 				vaonView.alpha = 1;
 			}];
-		// }
 		}
+
 		
 	}
 %end
@@ -146,17 +166,61 @@ SBMainSwitcherViewController *mainAppSwitcherVC;
 	-(void)viewDidLoad {
 		%orig;
 		mainAppSwitcherVC = self;
-		// appSwitcherView =  self.view;
 		dockWidth = mainAppSwitcherVC.view.frame.size.width*0.943;	
-		// appSwitcherBottomAnchor = self.view.subviews[0].subviews[0].subviews[0].subviews[0].subviews[0].subviews[0].bottomAnchor;
+		if(customSwitcherStyle){
+			if(!vaonViewIsInitialized){
+				UIColor *vaonGridViewBackgroundColor = [UIColor colorNamed:@"clearcolor"];
+				vaonGridView = [[UIView alloc] init];
+				vaonGridView.frame = CGRectMake(500, 500, 500, 500);
+				vaonGridView.clipsToBounds = TRUE;
+				vaonGridView.layer.cornerRadius = 15;
+				vaonGridView.alpha = 0;
+				vaonGridView.backgroundColor = vaonGridViewBackgroundColor;
+
+				UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+
+				UIVisualEffectView *vaonGridBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+				vaonGridBlurView.frame = vaonGridView.bounds;
+				vaonGridBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+				[vaonGridView addSubview:vaonGridBlurView];
+
+				UILabel *vaonGridTitleLabel = [[UILabel alloc] initWithFrame:self.view.bounds];
+				vaonGridTitleLabel.text = @"Vaon";
+				CGFloat titleLabelFontSize = 15;
+				UIFont *vaonGridTitleFont = [UIFont systemFontOfSize:titleLabelFontSize];
+				vaonGridTitleLabel.font = vaonGridTitleFont;
+				vaonGridTitleLabel.textAlignment = NSTextAlignmentLeft;
+				vaonGridTitleLabel.textColor = [UIColor whiteColor];
+
+				[vaonGridView addSubview:vaonGridTitleLabel];
+
+				vaonGridTitleLabel.translatesAutoresizingMaskIntoConstraints = false;
+				[vaonGridTitleLabel.topAnchor constraintEqualToAnchor:vaonGridView.topAnchor constant:10].active = YES;
+				[vaonGridTitleLabel.leftAnchor constraintEqualToAnchor:vaonGridView.leftAnchor constant:10].active = YES;
+
+				[self.view addSubview:vaonGridView];
+
+				vaonGridView.translatesAutoresizingMaskIntoConstraints = false;
+				[vaonGridView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-23].active = YES;
+				[vaonGridView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = YES;
+				[vaonGridView.widthAnchor constraintEqualToConstant:dockWidth].active = YES;
+				[vaonGridView.heightAnchor constraintEqualToConstant:113].active = YES;
+
+				vaonViewIsInitialized = TRUE;
+		}
+
+		}
 	}
+
 
 	-(void)switcherContentController:(id)arg1 setContainerStatusBarHidden:(BOOL)arg2 animationDuration:(double)arg3 {
 		if (arg2 == FALSE) {
 			[UIView animateWithDuration:0.2 animations:^ {
 				vaonView.alpha = 0;
 			}];
+
 		}
+
 		%orig;
 	}
 
@@ -174,47 +238,110 @@ SBMainSwitcherViewController *mainAppSwitcherVC;
 		%orig;
 	}
 
-// -(id)appLayoutsForSwitcherContentController:(id)arg1 {
-// 	if(vaonView.alpha!=0){
-// 		[UIView animateWithDuration:0.3 animations:^ {
-// 			// vaonView.alpha = 0;
-// 		}];
-// 	}
-// 	return %orig;
-// }
-
-%end
-
-%hook SBFluidSwitcherViewController
-
-	// -(void)shouldAddAppLayoutToFront: (id)arg1 forTransitionWithContext:(id)arg2 transitionCompleted:(BOOL)arg3{
-	// 	%orig;
-	// 	[UIView animateWithDuration:0.1 animations:^ {
-	// 		vaonView.alpha = 0;
-	// 	}];
-		
-	// }
-
-%end
 
 
-%hook SBDeckSwitcherViewController
-	-(void)viewDidLoad {
+
+	//fade in and out for vaon in grid mode
+	-(void)_updateDisplayLayoutElementForLayoutState: (id)arg1 {
 		%orig;
+		appSwitcherOpen = [self isAnySwitcherVisible];
+		if(customSwitcherStyle==2){
+			if(!appSwitcherOpen){
+				[UIView animateWithDuration:0.3 animations:^ {
+					vaonGridView.alpha = 0;
+				}];	
 
-		// appSwitcherBottomAnchor = self.viewIfLoaded.subviews[1].subviews[0].bottomAnchor;
-		// [vaonView.topAnchor constraintEqualToAnchor:appSwitcherBottomAnchor].active = YES;
+			}else{
+				[UIView animateWithDuration:0.3 animations:^ {
+					vaonGridView.alpha = 1;
+				}];	
+			}
+		}
 
 	}
 
 
 %end
 
-%hook SBFluidSwitcherTouchPassThroughScrollViewController
-	-(void)viewDidLoad {
-		%orig;
-		// [vaonView.topAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:20].active = YES;
+
+%hook SBAppSwitcherSettings
+
+	//Enable and customize grid mode 
+	-(void)setSwitcherStyle: (long long)arg1 {
+		currentSwitcherStyle = self.switcherStyle;
+		%orig(customSwitcherStyle);
+	}
+
+	- (void) setGridSwitcherPageScale: (double)arg1 {
+		%orig(0.25);
+	}
+
+	-(void)setGridSwitcherVerticalNaturalSpacingPortrait: (double)arg1 {
+		%orig(40);
 	}
 %end
 
 
+%hook SBGridSwitcherViewController
+	-(void)viewDidLoad {
+		%orig;
+
+	}
+%end
+
+%hook SBFluidSwitcherContentView
+	-(void)didMoveToWindow {
+		%orig;
+	// 	if(!vaonViewIsInitialized){
+	// 		if(switcherStyle==2){
+	// 		// deviceOrientation = [UIDevice currentDevice].orientation;
+	// 		// CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
+	// 		UIColor *vaonGridViewBackgroundColor = [UIColor colorNamed:@"clearcolor"];
+	// 		vaonGridView = [[UIView alloc] init];
+	// 		vaonGridView.frame = CGRectMake(500, 500, 500, 500);
+	// 		vaonGridView.clipsToBounds = TRUE;
+	// 		vaonGridView.layer.cornerRadius = 15;
+	// 		vaonGridView.alpha = 1;
+	// 		vaonGridView.backgroundColor = vaonGridViewBackgroundColor;
+
+	// 		UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+
+	// 		UIVisualEffectView *vaonGridBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+	// 		vaonGridBlurView.frame = vaonGridView.bounds;
+	// 		vaonGridBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+	// 		[vaonGridView addSubview:vaonGridBlurView];
+
+	// 		UILabel *vaonGridTitleLabel = [[UILabel alloc] initWithFrame:self.bounds];
+	// 		vaonGridTitleLabel.text = @"Vaon";
+	// 		CGFloat titleLabelFontSize = 15;
+	// 		UIFont *vaonGridTitleFont = [UIFont systemFontOfSize:titleLabelFontSize];
+	// 		vaonGridTitleLabel.font = vaonGridTitleFont;
+	// 		vaonGridTitleLabel.textAlignment = NSTextAlignmentLeft;
+	// 		vaonGridTitleLabel.textColor = [UIColor whiteColor];
+
+	// 		[vaonGridView addSubview:vaonGridTitleLabel];
+
+	// 		vaonGridTitleLabel.translatesAutoresizingMaskIntoConstraints = false;
+	// 		[vaonGridTitleLabel.topAnchor constraintEqualToAnchor:vaonGridView.topAnchor constant:10].active = YES;
+	// 		[vaonGridTitleLabel.leftAnchor constraintEqualToAnchor:vaonGridView.leftAnchor constant:10].active = YES;
+
+	// 		[self addSubview:vaonGridView];
+
+	// 		vaonGridView.translatesAutoresizingMaskIntoConstraints = false;
+	// 		[vaonGridView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = YES;
+	// 		[vaonGridView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
+	// 		[vaonGridView.widthAnchor constraintEqualToConstant:dockWidth].active = YES;
+	// 		[vaonGridView.heightAnchor constraintEqualToConstant:113].active = YES;
+
+	// 		vaonViewIsInitialized = TRUE;
+	// 	}
+	// 	}
+	// 	// [UIView animateWithDuration:0.4 animations:^ {
+	// 	// 	vaonGridView.alpha = 1;
+	// 	// }];
+	}
+%end
+
+%ctor {
+	
+}
