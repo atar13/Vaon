@@ -17,6 +17,7 @@ device batteries
 favorited apps
 music player
 countdown 
+airpod pro transparency and noise cancellation
 **/
 
 //credit to Dogbert for the icon
@@ -34,32 +35,7 @@ countdown
 @interface SBSwitcherAppSuggestionContentView : UIView
 @end
 
-@interface SBFluidSwitcherItemContainer
-// @property (nonatomic,retain) UIView* contentView;
-@end
-
-@interface SBAppSwitcherPageView : UIView 
-@end
-
-@interface SBDockView : UIView
-+ (id)sharedInstance;
-@property (nonatomic,readonly) CGRect dockListViewFrame;
-@end
-
 @interface SBFluidSwitcherViewController : UIViewController
-@end
-
-@interface SBDeckSwitcherViewController : SBFluidSwitcherViewController
-@end
-
-@interface SBFluidSwitcherTouchPassThroughScrollViewController : UIScrollView
-- (id)view;
-@end 
-
-@interface SBFView : UIView
-@end
-
-@interface SBAppSwitcherPageShadowView :SBFView 
 @end
 
 @interface SBFluidSwitcherContentView : UIView
@@ -90,18 +66,23 @@ NSString *switcherMode = nil;
 UIView *vaonView;
 UIColor *vaonViewBackgroundColor;
 UILabel *titleLabel;
-// UIView *appSwitcherView;
+
 CGFloat dockWidth;
 BOOL vaonViewIsInitialized = FALSE;
+
 UIDeviceOrientation deviceOrientation;
-NSLayoutYAxisAnchor *appSwitcherBottomAnchor;
-long long sbAppSwitcherOrientation;
+// long long sbAppSwitcherOrientation;
 SBMainSwitcherViewController *mainAppSwitcherVC;
 long long customSwitcherStyle = 2;
 long long currentSwitcherStyle; 
 BOOL appSwitcherOpen = FALSE;
 
 UIView *vaonGridView;
+
+
+void initBaseVaonView() {
+
+}
 
 
 %hook SBSwitcherAppSuggestionContentView
