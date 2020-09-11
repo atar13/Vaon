@@ -1,6 +1,5 @@
 //TODO: 
-//raise the normal apps
-//move vaonView to the bottom
+//raise the app layouts
 //add customtext option to the top/bottom of vaon view
 //option for a split view of two widgets
 //option to have ipad style switcher : DONE
@@ -10,6 +9,7 @@
 //add option to ovveride landscape hide 
 //hide appname/icon from sbappswitchersettings
 //options for custom placement and resizing
+//make social media icons filled and gray
 /**
 recent  phone calls
 favorite contacts
@@ -40,6 +40,8 @@ NSString *switcherMode = nil;
 
 
 UIView *vaonView;
+UIView *vaonGridView;
+
 UIColor *vaonViewBackgroundColor;
 UILabel *titleLabel;
 
@@ -53,7 +55,6 @@ long long customSwitcherStyle = 2;
 long long currentSwitcherStyle; 
 BOOL appSwitcherOpen = FALSE;
 
-UIView *vaonGridView;
 
 
 void initBaseVaonView() {
@@ -135,7 +136,7 @@ void initBaseVaonView() {
 		%orig;
 		mainAppSwitcherVC = self;
 		dockWidth = mainAppSwitcherVC.view.frame.size.width*0.943;	
-		if(customSwitcherStyle==2){
+		if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
 			if(!vaonViewIsInitialized){
 				UIColor *vaonGridViewBackgroundColor = [UIColor colorNamed:@"clearcolor"];
 				vaonGridView = [[UIView alloc] init];
@@ -213,7 +214,7 @@ void initBaseVaonView() {
 	-(void)_updateDisplayLayoutElementForLayoutState: (id)arg1 {
 		%orig;
 		appSwitcherOpen = [self isAnySwitcherVisible];
-		if(customSwitcherStyle==2){
+		if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
 			if(!appSwitcherOpen){
 				[UIView animateWithDuration:0.3 animations:^ {
 					vaonGridView.alpha = 0;
