@@ -1,7 +1,7 @@
 export ARCHS = arm64 arm64e 
 export SDKVERSION = 13.3
 
-TARGET := iphone:clang:latest:13.0
+TARGET := iphone:clang:13.3:latest
 INSTALL_TARGET_PROCESSES = SpringBoard
 
 
@@ -14,3 +14,5 @@ Vaon_CFLAGS = -fobjc-arc
 Vaon_EXTRA_FRAMEWORKS += Cephei
 
 include $(THEOS_MAKE_PATH)/tweak.mk
+SUBPROJECTS += vaonprefs
+include $(THEOS_MAKE_PATH)/aggregate.mk

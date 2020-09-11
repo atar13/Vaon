@@ -1,12 +1,10 @@
-//credit to https://github.com/vanwijkdave/QuitAll for help with adding the vaonView to the app switcher
-
 //TODO: 
 //raise the normal apps
 //move vaonView to the bottom
 //add customtext option to the top/bottom of vaon view
 //option for a split view of two widgets
-//option ot have ipad style switcher
-//check for landscape mode
+//option to have ipad style switcher : DONE
+//check for landscape mode : DONE
 //add option to remove handoff/suggested apps banner that interferes with vaon
 //add option for vaon to fly up from the bottom	
 //add option to ovveride landscape hide 
@@ -20,6 +18,8 @@ favorited apps
 music player
 countdown 
 **/
+
+//credit to Dogbert for the icon
 
 
 #import <Cephei/HBPreferences.h>
@@ -73,6 +73,17 @@ countdown
 
 @interface SBGridSwitcherViewController : SBFluidSwitcherViewController
 @end
+
+
+HBPreferences *prefs;
+
+//preference variables
+BOOL isEnabled;
+
+NSString *switcherMode = nil;
+
+
+
 
 
 
@@ -167,7 +178,7 @@ UIView *vaonGridView;
 		%orig;
 		mainAppSwitcherVC = self;
 		dockWidth = mainAppSwitcherVC.view.frame.size.width*0.943;	
-		if(customSwitcherStyle){
+		if(customSwitcherStyle==2){
 			if(!vaonViewIsInitialized){
 				UIColor *vaonGridViewBackgroundColor = [UIColor colorNamed:@"clearcolor"];
 				vaonGridView = [[UIView alloc] init];
@@ -342,6 +353,24 @@ UIView *vaonGridView;
 	}
 %end
 
+
+void updateSettings(){
+	[prefs registerBool:&isEnabled default:TRUE forKey:@"isEnabled"];
+
+	[prefs registerObject:&switcherMode default:@"stock" forKey:@"switcherMode"];
+}
+
 %ctor {
-	
+	prefs = [[HBPreferences alloc] initWithIdentifier:@"com.atar13.vaonprefs"];
+	updateSettings();
+
+	if(isEnabled){
+		%init;
+	}
+
+	if([switcherMode isEqual:@"grid"]){
+		customSwitcherStyle = 2;
+	}else{
+		customSwitcherStyle = 1;
+	}
 }
