@@ -9,7 +9,8 @@
 //add option to ovveride landscape hide 
 //hide appname/icon from sbappswitchersettings
 //options for custom placement and resizing
-//make social media icons filled and gray
+//make social media icons filled and grey/colorful
+//ANIMATE GREEN BATTERY CIRCLES
 /**
 recent  phone calls
 favorite contacts
@@ -42,8 +43,13 @@ NSString *switcherMode = nil;
 UIView *vaonView;
 UIView *vaonGridView;
 
+UIStackView *batteryHStackView;
+
 UIColor *vaonViewBackgroundColor;
+UIBlurEffect *blurEffect;
 UILabel *titleLabel;
+
+int vaonViewCornerRadius = 17;
 
 CGFloat dockWidth;
 BOOL vaonViewIsInitialized = FALSE;
@@ -58,9 +64,52 @@ BOOL appSwitcherOpen = FALSE;
 
 
 void initBaseVaonView() {
+	vaonViewBackgroundColor = [UIColor colorNamed:@"clearColor"];
+	blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+	titleLabel = [[UILabel alloc] initWithFrame:vaonView.bounds];
+	titleLabel.text = @"Vaon";
+	CGFloat titleLabelFontSize = 15;
+	UIFont *titleFont = [UIFont systemFontOfSize:titleLabelFontSize];
+	titleLabel.font = titleFont;
+	titleLabel.textAlignment = NSTextAlignmentLeft;
+	titleLabel.textColor = [UIColor whiteColor];
+	[titleLabel.widthAnchor constraintEqualToConstant:100].active = YES;
+	[titleLabel.heightAnchor constraintEqualToConstant:100].active = YES;
+}
+
+
+void initBatteryView(UIView *view){
+	batteryHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
+	batteryHStackView.axis = UILayoutConstraintAxisHorizontal;
+	batteryHStackView.alignment= UIStackViewAlignmentCenter;
+	batteryHStackView.distribution = UIStackViewDistributionEqualSpacing;
+	batteryHStackView.clipsToBounds = TRUE;
+	UIView *testView = [[UIView alloc] init];
+	testView.backgroundColor = [UIColor blueColor];
+	[testView.widthAnchor constraintEqualToConstant:100].active = YES;
+	[testView.heightAnchor constraintEqualToConstant:100].active = YES;
+	[batteryHStackView addArrangedSubview:titleLabel];
+	[batteryHStackView addArrangedSubview:testView];
+
+	batteryHStackView.translatesAutoresizingMaskIntoConstraints = false;
+
+	[view addSubview:batteryHStackView];
+
+	[batteryHStackView.centerXAnchor constraintEqualToAnchor:view.centerXAnchor].active = YES;
+	[batteryHStackView.centerYAnchor constraintEqualToAnchor:view.centerYAnchor].active = YES;
 
 }
 
+void fadeViewIn(UIView *view){
+
+}
+void fadeViewOut(UIView *view){
+
+}
+
+void animateBatteryCircle() {
+
+}
 
 %hook SBSwitcherAppSuggestionContentView
 
@@ -73,40 +122,25 @@ void initBaseVaonView() {
 		CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
 
 		if(!vaonViewIsInitialized){
-			// vaonViewBackgroundColor = [[UIColor colorWithRed: 0.0/255.0
-			// green: 0.0/255.0
-			// blue: 255.0/255.0
-			// alpha: 1.0] init];
-			vaonViewBackgroundColor = [UIColor colorNamed:@"clearColor"];
+			initBaseVaonView();
 			vaonView = [[UIView alloc] init];
 			vaonView.frame = CGRectMake(500, 500, 500, 500);
 			vaonView.clipsToBounds = TRUE;
-			vaonView.layer.cornerRadius = 15;
+			vaonView.layer.cornerRadius = vaonViewCornerRadius;
 			vaonView.alpha = 0;
 			vaonView.backgroundColor = vaonViewBackgroundColor;
-
-
-
-			UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
 
 			UIVisualEffectView *vaonBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
 			vaonBlurView.frame = vaonView.bounds;
 			vaonBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 			[vaonView addSubview:vaonBlurView];
 
-			titleLabel = [[UILabel alloc] initWithFrame:vaonView.bounds];
-			titleLabel.text = @"Vaon";
-			CGFloat titleLabelFontSize = 15;
-			UIFont *titleFont = [UIFont systemFontOfSize:titleLabelFontSize];
-			titleLabel.font = titleFont;
-			titleLabel.textAlignment = NSTextAlignmentLeft;
-			titleLabel.textColor = [UIColor whiteColor];
+			// [vaonView addSubview:titleLabel];
 
-			[vaonView addSubview:titleLabel];
-
-			titleLabel.translatesAutoresizingMaskIntoConstraints = false;
-			[titleLabel.topAnchor constraintEqualToAnchor:vaonView.topAnchor constant:5].active = YES;
-			[titleLabel.leftAnchor constraintEqualToAnchor:vaonView.leftAnchor constant:10].active = YES;
+			// titleLabel.translatesAutoresizingMaskIntoConstraints = false;
+			// [titleLabel.topAnchor constraintEqualToAnchor:vaonView.topAnchor constant:5].active = YES;
+			// [titleLabel.leftAnchor constraintEqualToAnchor:vaonView.leftAnchor constant:10].active = YES;
+			initBatteryView(vaonView);
 
 			[self addSubview:vaonView];
 
@@ -132,42 +166,34 @@ void initBaseVaonView() {
 
 %hook SBMainSwitcherViewController
 
+
 	-(void)viewDidLoad {
 		%orig;
 		mainAppSwitcherVC = self;
 		dockWidth = mainAppSwitcherVC.view.frame.size.width*0.943;	
+		
+		//initializes vaon for grid mode 
 		if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
 			if(!vaonViewIsInitialized){
-				UIColor *vaonGridViewBackgroundColor = [UIColor colorNamed:@"clearcolor"];
+				initBaseVaonView();
 				vaonGridView = [[UIView alloc] init];
 				vaonGridView.frame = CGRectMake(500, 500, 500, 500);
 				vaonGridView.clipsToBounds = TRUE;
-				vaonGridView.layer.cornerRadius = 15;
+				vaonGridView.layer.cornerRadius = vaonViewCornerRadius;
 				vaonGridView.alpha = 0;
-				vaonGridView.backgroundColor = vaonGridViewBackgroundColor;
+				vaonGridView.backgroundColor = vaonViewBackgroundColor;
 
-				UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
 
 				UIVisualEffectView *vaonGridBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
 				vaonGridBlurView.frame = vaonGridView.bounds;
 				vaonGridBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 				[vaonGridView addSubview:vaonGridBlurView];
 
-				UILabel *vaonGridTitleLabel = [[UILabel alloc] initWithFrame:self.view.bounds];
-				vaonGridTitleLabel.text = @"Vaon";
-				CGFloat titleLabelFontSize = 15;
-				UIFont *vaonGridTitleFont = [UIFont systemFontOfSize:titleLabelFontSize];
-				vaonGridTitleLabel.font = vaonGridTitleFont;
-				vaonGridTitleLabel.textAlignment = NSTextAlignmentLeft;
-				vaonGridTitleLabel.textColor = [UIColor whiteColor];
+				initBatteryView(vaonGridView);
 
-				[vaonGridView addSubview:vaonGridTitleLabel];
-
-				vaonGridTitleLabel.translatesAutoresizingMaskIntoConstraints = false;
-				[vaonGridTitleLabel.topAnchor constraintEqualToAnchor:vaonGridView.topAnchor constant:10].active = YES;
-				[vaonGridTitleLabel.leftAnchor constraintEqualToAnchor:vaonGridView.leftAnchor constant:10].active = YES;
-
+				
 				[self.view addSubview:vaonGridView];
+
 
 				vaonGridView.translatesAutoresizingMaskIntoConstraints = false;
 				[vaonGridView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-23].active = YES;
@@ -176,23 +202,21 @@ void initBaseVaonView() {
 				[vaonGridView.heightAnchor constraintEqualToConstant:113].active = YES;
 
 				vaonViewIsInitialized = TRUE;
-		}
-
+			}
 		}
 	}
 
-
+	
 	-(void)switcherContentController:(id)arg1 setContainerStatusBarHidden:(BOOL)arg2 animationDuration:(double)arg3 {
 		if (arg2 == FALSE) {
 			[UIView animateWithDuration:0.2 animations:^ {
 				vaonView.alpha = 0;
 			}];
-
 		}
-
 		%orig;
 	}
 
+	//fade out vaon when entering an app layout from the switcher
 	-(void)_configureRequest:(id)arg1 forSwitcherTransitionRequest:(id)arg2 withEventLabel:(id)arg3 {
 
 		NSString *switcherTransitionRequest = [[NSString alloc] initWithFormat:@"%@", arg2];
@@ -310,6 +334,10 @@ void initBaseVaonView() {
 	// 	// }];
 	}
 %end
+
+// %hook S
+
+// %end
 
 
 void updateSettings(){
