@@ -28,3 +28,8 @@
 
 @interface SBSwitcherAppSuggestionBannerView : PLPlatterview
 @end
+
+@interface BCBatteryDeviceController : NSObject
++ (id)sharedInstance;
+- (NSArray*)connectedDevices;
+@end

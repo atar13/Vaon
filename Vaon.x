@@ -10,7 +10,8 @@
 //hide appname/icon from sbappswitchersettings
 //options for custom placement and resizing
 //make social media icons filled and grey/colorful
-//ANIMATE GREEN BATTERY CIRCLES
+//ANIMATE GREEN BATTERY CIRCLES using CGContextAddArc
+//when fading in and out force the battery view to also refresh
 /**
 recent  phone calls
 favorite contacts
@@ -46,6 +47,7 @@ UIView *vaonGridView;
 UIStackView *batteryHStackView;
 
 UIColor *vaonViewBackgroundColor;
+UIVisualEffectView *vaonBlurView;
 UIBlurEffect *blurEffect;
 UILabel *titleLabel;
 
@@ -61,44 +63,97 @@ long long customSwitcherStyle = 2;
 long long currentSwitcherStyle; 
 BOOL appSwitcherOpen = FALSE;
 
+//batteryView variables
+NSUInteger connectedBluetoothDevicesCount;
+NSArray *connectedBluetoothDevices;
+NSMutableArray *connectedDevicesBaseViewArray;
 
-
-void initBaseVaonView() {
+void initBaseVaonView(UIView* view) {
 	vaonViewBackgroundColor = [UIColor colorNamed:@"clearColor"];
-	blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
-	titleLabel = [[UILabel alloc] initWithFrame:vaonView.bounds];
-	titleLabel.text = @"Vaon";
-	CGFloat titleLabelFontSize = 15;
-	UIFont *titleFont = [UIFont systemFontOfSize:titleLabelFontSize];
-	titleLabel.font = titleFont;
-	titleLabel.textAlignment = NSTextAlignmentLeft;
-	titleLabel.textColor = [UIColor whiteColor];
-	[titleLabel.widthAnchor constraintEqualToConstant:100].active = YES;
-	[titleLabel.heightAnchor constraintEqualToConstant:100].active = YES;
+	blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
+	titleLabel = [[UILabel alloc] initWithFrame:view.bounds];
+	// view.frame = CGRectMake(500, 500, 500, 500);
+	view.clipsToBounds = TRUE;
+	view.layer.cornerRadius = vaonViewCornerRadius;
+	view.alpha = 0;
+	view.backgroundColor = vaonViewBackgroundColor;
+	
+	vaonBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+	vaonBlurView.frame = view.bounds;
+	vaonBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+	[view addSubview:vaonBlurView];
+
 }
 
 
 void initBatteryView(UIView *view){
 	batteryHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
 	batteryHStackView.axis = UILayoutConstraintAxisHorizontal;
-	batteryHStackView.alignment= UIStackViewAlignmentCenter;
-	batteryHStackView.distribution = UIStackViewDistributionEqualSpacing;
+	batteryHStackView.alignment = UIStackViewAlignmentCenter;
+	batteryHStackView.distribution = UIStackViewDistributionFill;
+	batteryHStackView.spacing = 35;
 	batteryHStackView.clipsToBounds = TRUE;
-	UIView *testView = [[UIView alloc] init];
-	testView.backgroundColor = [UIColor blueColor];
-	[testView.widthAnchor constraintEqualToConstant:100].active = YES;
-	[testView.heightAnchor constraintEqualToConstant:100].active = YES;
-	[batteryHStackView addArrangedSubview:titleLabel];
-	[batteryHStackView addArrangedSubview:testView];
+
+	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+	connectedBluetoothDevicesCount = connectedBluetoothDevices.count;
+
+	connectedDevicesBaseViewArray = [[NSMutableArray alloc] initWithCapacity:connectedBluetoothDevicesCount];
+
+	for(int i = 0; i<connectedBluetoothDevicesCount; i++){
+		if(i<=6){
+			UIStackView *connectedDeviceBaseView = [[UIStackView alloc] init];
+			connectedDeviceBaseView.axis = UILayoutConstraintAxisVertical;
+			connectedDeviceBaseView.alignment = UIStackViewAlignmentCenter;
+			connectedDeviceBaseView.distribution = UIStackViewDistributionFill;
+			connectedDeviceBaseView.clipsToBounds = TRUE;
+			connectedDeviceBaseView.backgroundColor = [UIColor clearColor];
+			connectedDeviceBaseView.frame = batteryHStackView.bounds;
+
+
+			UILabel *deviceNameLabel = [[UILabel alloc] init];
+			deviceNameLabel.text = @"Device #";
+			deviceNameLabel.adjustsFontSizeToFitWidth = TRUE; 
+			// deviceNameLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
+			// [deviceNameLabel.widthAnchor constraintEqualToConstant:35].active = TRUE;
+			// [deviceNameLabel.heightAnchor constraintEqualToConstant:20].active = TRUE;
+			deviceNameLabel.frame = connectedDeviceBaseView.bounds;
+			[connectedDeviceBaseView addArrangedSubview:deviceNameLabel];
+
+
+
+			connectedDevicesBaseViewArray[i] = connectedDeviceBaseView;
+			[batteryHStackView addArrangedSubview:connectedDeviceBaseView];
+		}
+	}	
+
+
+
+	// titleLabel.text = @"Vaon";
+	// CGFloat titleLabelFontSize = 15;
+	// UIFont *titleFont = [UIFont systemFontOfSize:titleLabelFontSize];
+	// titleLabel.font = titleFont;
+	// titleLabel.textAlignment = NSTextAlignmentCenter;
+	// titleLabel.textColor = [UIColor whiteColor];
+	// [titleLabel.widthAnchor constraintEqualToConstant:50].active = TRUE;
+	// [titleLabel.heightAnchor constraintEqualToConstant:100].active = TRUE;
+
+	// UIView *testView = [[UIView alloc] init];
+	// testView.backgroundColor = [UIColor blueColor];
+	// [testView.widthAnchor constraintEqualToConstant:50].active = TRUE;
+	// [testView.heightAnchor constraintEqualToConstant:100].active = TRUE;
+	// [batteryHStackView addArrangedSubview:titleLabel];
+	// [batteryHStackView addArrangedSubview:testView];
 
 	batteryHStackView.translatesAutoresizingMaskIntoConstraints = false;
 
 	[view addSubview:batteryHStackView];
 
-	[batteryHStackView.centerXAnchor constraintEqualToAnchor:view.centerXAnchor].active = YES;
-	[batteryHStackView.centerYAnchor constraintEqualToAnchor:view.centerYAnchor].active = YES;
+	[batteryHStackView.centerXAnchor constraintEqualToAnchor:view.centerXAnchor].active = TRUE;
+	[batteryHStackView.centerYAnchor constraintEqualToAnchor:view.centerYAnchor].active = TRUE;
 
 }
+
+
 
 void fadeViewIn(UIView *view){
 
@@ -116,44 +171,30 @@ void animateBatteryCircle() {
 	//creates vaonview for normal/non-grid app switcher 
 	-(void)didMoveToWindow {
 		%orig;
-
+		
 		// UIInterfaceOrientation appSwitcherOrientation = [UIApplication sharedApplication].windows[0].windowScene.interfaceOrientation;
 		deviceOrientation = [UIDevice currentDevice].orientation;
 		CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
 
 		if(!vaonViewIsInitialized){
-			initBaseVaonView();
 			vaonView = [[UIView alloc] init];
-			vaonView.frame = CGRectMake(500, 500, 500, 500);
-			vaonView.clipsToBounds = TRUE;
-			vaonView.layer.cornerRadius = vaonViewCornerRadius;
-			vaonView.alpha = 0;
-			vaonView.backgroundColor = vaonViewBackgroundColor;
 
-			UIVisualEffectView *vaonBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
-			vaonBlurView.frame = vaonView.bounds;
-			vaonBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-			[vaonView addSubview:vaonBlurView];
+			initBaseVaonView(vaonView);
 
-			// [vaonView addSubview:titleLabel];
-
-			// titleLabel.translatesAutoresizingMaskIntoConstraints = false;
-			// [titleLabel.topAnchor constraintEqualToAnchor:vaonView.topAnchor constant:5].active = YES;
-			// [titleLabel.leftAnchor constraintEqualToAnchor:vaonView.leftAnchor constant:10].active = YES;
 			initBatteryView(vaonView);
 
 			[self addSubview:vaonView];
 
 			vaonView.translatesAutoresizingMaskIntoConstraints = false;
-			[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = YES;
-			[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
-			[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = YES;
-			[vaonView.heightAnchor constraintEqualToConstant:(0.12*mainScreen)].active = YES;
+			[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = TRUE;
+			[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = TRUE;
+			[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = TRUE;
+			[vaonView.heightAnchor constraintEqualToConstant:(0.12*mainScreen)].active = TRUE;
 
 
 			vaonViewIsInitialized = TRUE;
 		}
-
+		//fades in the non-grid view when the app switcher is shown
 		if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
 			[UIView animateWithDuration:0.4 animations:^ {
 				vaonView.alpha = 1;
@@ -175,31 +216,20 @@ void animateBatteryCircle() {
 		//initializes vaon for grid mode 
 		if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
 			if(!vaonViewIsInitialized){
-				initBaseVaonView();
 				vaonGridView = [[UIView alloc] init];
-				vaonGridView.frame = CGRectMake(500, 500, 500, 500);
-				vaonGridView.clipsToBounds = TRUE;
-				vaonGridView.layer.cornerRadius = vaonViewCornerRadius;
-				vaonGridView.alpha = 0;
-				vaonGridView.backgroundColor = vaonViewBackgroundColor;
 
+				initBaseVaonView(vaonGridView);
 
-				UIVisualEffectView *vaonGridBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
-				vaonGridBlurView.frame = vaonGridView.bounds;
-				vaonGridBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-				[vaonGridView addSubview:vaonGridBlurView];
 
 				initBatteryView(vaonGridView);
-
 				
 				[self.view addSubview:vaonGridView];
 
-
 				vaonGridView.translatesAutoresizingMaskIntoConstraints = false;
-				[vaonGridView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-23].active = YES;
-				[vaonGridView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = YES;
-				[vaonGridView.widthAnchor constraintEqualToConstant:dockWidth].active = YES;
-				[vaonGridView.heightAnchor constraintEqualToConstant:113].active = YES;
+				[vaonGridView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-23].active = TRUE;
+				[vaonGridView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = TRUE;
+				[vaonGridView.widthAnchor constraintEqualToConstant:dockWidth].active = TRUE;
+				[vaonGridView.heightAnchor constraintEqualToConstant:113].active = TRUE;
 
 				vaonViewIsInitialized = TRUE;
 			}
@@ -215,6 +245,7 @@ void animateBatteryCircle() {
 		}
 		%orig;
 	}
+
 
 	//fade out vaon when entering an app layout from the switcher
 	-(void)_configureRequest:(id)arg1 forSwitcherTransitionRequest:(id)arg2 withEventLabel:(id)arg3 {
@@ -275,12 +306,6 @@ void animateBatteryCircle() {
 %end
 
 
-%hook SBGridSwitcherViewController
-	-(void)viewDidLoad {
-		%orig;
-
-	}
-%end
 
 %hook SBFluidSwitcherContentView
 	-(void)didMoveToWindow {
@@ -315,16 +340,16 @@ void animateBatteryCircle() {
 	// 		[vaonGridView addSubview:vaonGridTitleLabel];
 
 	// 		vaonGridTitleLabel.translatesAutoresizingMaskIntoConstraints = false;
-	// 		[vaonGridTitleLabel.topAnchor constraintEqualToAnchor:vaonGridView.topAnchor constant:10].active = YES;
-	// 		[vaonGridTitleLabel.leftAnchor constraintEqualToAnchor:vaonGridView.leftAnchor constant:10].active = YES;
+	// 		[vaonGridTitleLabel.topAnchor constraintEqualToAnchor:vaonGridView.topAnchor constant:10].active = TRUE;
+	// 		[vaonGridTitleLabel.leftAnchor constraintEqualToAnchor:vaonGridView.leftAnchor constant:10].active = TRUE;
 
 	// 		[self addSubview:vaonGridView];
 
 	// 		vaonGridView.translatesAutoresizingMaskIntoConstraints = false;
-	// 		[vaonGridView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = YES;
-	// 		[vaonGridView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
-	// 		[vaonGridView.widthAnchor constraintEqualToConstant:dockWidth].active = YES;
-	// 		[vaonGridView.heightAnchor constraintEqualToConstant:113].active = YES;
+	// 		[vaonGridView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = TRUE;
+	// 		[vaonGridView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = TRUE;
+	// 		[vaonGridView.widthAnchor constraintEqualToConstant:dockWidth].active = TRUE;
+	// 		[vaonGridView.heightAnchor constraintEqualToConstant:113].active = TRUE;
 
 	// 		vaonViewIsInitialized = TRUE;
 	// 	}
@@ -343,6 +368,9 @@ void animateBatteryCircle() {
 		self.hidden = TRUE;
 	}
 %end
+
+
+
 
 void updateSettings(){
 	[prefs registerBool:&isEnabled default:TRUE forKey:@"isEnabled"];
