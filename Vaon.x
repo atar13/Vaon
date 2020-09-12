@@ -335,10 +335,14 @@ void animateBatteryCircle() {
 	}
 %end
 
-// %hook S
 
-// %end
+%hook SBSwitcherAppSuggestionBannerView
 
+	-(void)didMoveToWindow {
+		%orig;
+		self.hidden = TRUE;
+	}
+%end
 
 void updateSettings(){
 	[prefs registerBool:&isEnabled default:TRUE forKey:@"isEnabled"];

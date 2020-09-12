@@ -22,3 +22,9 @@
 
 @interface SBGridSwitcherViewController : SBFluidSwitcherViewController
 @end
+
+@interface PLPlatterview : UIView
+@end
+
+@interface SBSwitcherAppSuggestionBannerView : PLPlatterview
+@end
