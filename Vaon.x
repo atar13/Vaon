@@ -1,17 +1,17 @@
 //TODO: 
-//raise the app layouts
 //add customtext option to the top/bottom of vaon view
 //option for a split view of two widgets
 //option to have ipad style switcher : DONE
 //check for landscape mode : DONE
-//add option to remove handoff/suggested apps banner that interferes with vaon
+//add option to remove handoff/suggested apps banner that interferes with vaon : DONE
 //add option for vaon to fly up from the bottom	
-//add option to ovveride landscape hide 
+//add option to ovveride landscape hide and override hiding the suggestion banner
 //hide appname/icon from sbappswitchersettings
 //options for custom placement and resizing
 //make social media icons filled and grey/colorful
 //ANIMATE GREEN BATTERY CIRCLES using CGContextAddArc
 //when fading in and out force the battery view to also refresh
+//option to hide percent character
 /**
 recent  phone calls
 favorite contacts
@@ -67,6 +67,11 @@ BOOL appSwitcherOpen = FALSE;
 NSUInteger connectedBluetoothDevicesCount;
 NSArray *connectedBluetoothDevices;
 NSMutableArray *connectedDevicesBaseViewArray;
+int individualDeviceViewWidth = 50; 
+
+CGFloat degreesToRadians(CGFloat degrees){
+	return degrees*(M_PI/180);
+}
 
 void initBaseVaonView(UIView* view) {
 	vaonViewBackgroundColor = [UIColor colorNamed:@"clearColor"];
@@ -85,6 +90,86 @@ void initBaseVaonView(UIView* view) {
 
 }
 
+void reloadBatteryInfo(){
+	for(int i = 0; i<connectedBluetoothDevicesCount; i++){
+		if(i<=6){
+			BCBatteryDevice *device = connectedBluetoothDevices[i];
+			UIStackView *connectedDeviceBaseView = [[UIStackView alloc] init];
+			connectedDeviceBaseView.axis = UILayoutConstraintAxisVertical;
+			connectedDeviceBaseView.alignment = UIStackViewAlignmentCenter;
+			connectedDeviceBaseView.distribution = UIStackViewDistributionFill;
+			connectedDeviceBaseView.spacing = 10;
+			connectedDeviceBaseView.clipsToBounds = TRUE;
+			connectedDeviceBaseView.backgroundColor = [UIColor clearColor];
+			connectedDeviceBaseView.frame = batteryHStackView.bounds;
+
+			UIView *devicePercentChargeBackgroundCircleView = [[UIView alloc] init];
+			devicePercentChargeBackgroundCircleView.frame = connectedDeviceBaseView.bounds;
+			devicePercentChargeBackgroundCircleView.backgroundColor = [UIColor clearColor];
+			devicePercentChargeBackgroundCircleView.layer.cornerRadius = individualDeviceViewWidth/2;
+
+			UILabel *deviceNameLabel = [[UILabel alloc] init];
+			NSMutableString *devicePercentCharge = [NSMutableString stringWithFormat: @"%lld", [device percentCharge]];
+			[devicePercentCharge appendString:@"%"];
+			deviceNameLabel.text = devicePercentCharge;
+			// deviceNameLabel.adjustsFontSizeToFitWidth = TRUE;
+			UIFont *deviceNameLabelFont = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
+			deviceNameLabel.font = deviceNameLabelFont;
+			deviceNameLabel.frame = devicePercentChargeBackgroundCircleView.bounds;
+			deviceNameLabel.clipsToBounds = TRUE;
+
+
+			UIBlurEffect *devicePercentChargeBackgroundCircleViewBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+			UIVisualEffectView *devicePercentChargeBackgroundCircleViewVisualEffectView = [[UIVisualEffectView alloc] initWithEffect:devicePercentChargeBackgroundCircleViewBlurEffect];
+			// devicePercentChargeBackgroundCircleViewVisualEffectView.frame = devicePercentChargeBackgroundCircleView.bounds;
+			devicePercentChargeBackgroundCircleViewVisualEffectView.layer.cornerRadius = individualDeviceViewWidth/2;
+			devicePercentChargeBackgroundCircleViewVisualEffectView.clipsToBounds = TRUE;
+			devicePercentChargeBackgroundCircleViewVisualEffectView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+
+			[devicePercentChargeBackgroundCircleView addSubview:devicePercentChargeBackgroundCircleViewVisualEffectView];
+	
+			[devicePercentChargeBackgroundCircleView addSubview:deviceNameLabel];
+
+			devicePercentChargeBackgroundCircleView.translatesAutoresizingMaskIntoConstraints = FALSE;
+			[devicePercentChargeBackgroundCircleView.widthAnchor constraintEqualToConstant:individualDeviceViewWidth].active = TRUE;
+			[devicePercentChargeBackgroundCircleView.heightAnchor constraintEqualToConstant:individualDeviceViewWidth].active = TRUE;
+			[connectedDeviceBaseView addArrangedSubview:devicePercentChargeBackgroundCircleView];
+
+			deviceNameLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
+			[deviceNameLabel.centerXAnchor constraintEqualToAnchor:devicePercentChargeBackgroundCircleView.centerXAnchor].active = TRUE;
+			[deviceNameLabel.centerYAnchor constraintEqualToAnchor:devicePercentChargeBackgroundCircleView.centerYAnchor].active = TRUE;
+
+
+
+
+			UIBezierPath *devicePercentChargeBackgroundCircleViewOutlinePath = [UIBezierPath bezierPath];
+			[devicePercentChargeBackgroundCircleViewOutlinePath addArcWithCenter:CGPointMake(devicePercentChargeBackgroundCircleView.center.x+individualDeviceViewWidth/2,devicePercentChargeBackgroundCircleView.center.y+individualDeviceViewWidth/2) 
+				radius:individualDeviceViewWidth/2
+				startAngle:degreesToRadians(-90) 
+				endAngle:degreesToRadians((3.6*[device percentCharge])-90) 
+				clockwise:TRUE];
+			// devicePercentChargeBackgroundCircleViewOutlinePath.lineWidth = 5;
+
+			CAShapeLayer *circleOutlineLayer = [[CAShapeLayer alloc] init];
+			circleOutlineLayer.bounds = devicePercentChargeBackgroundCircleView.bounds;
+			circleOutlineLayer.position = devicePercentChargeBackgroundCircleView.center;
+			circleOutlineLayer.fillColor = [UIColor clearColor].CGColor;
+			circleOutlineLayer.strokeColor = [UIColor greenColor].CGColor;
+			circleOutlineLayer.path = devicePercentChargeBackgroundCircleViewOutlinePath.CGPath;
+			circleOutlineLayer.lineWidth = individualDeviceViewWidth/10;
+			// [devicePercentChargeBackgroundCircleViewOutlinePath fill];
+			[devicePercentChargeBackgroundCircleView.layer addSublayer:circleOutlineLayer];
+
+
+			UIImageView *deviceGlyphView = [[UIImageView alloc] initWithImage:device.glyph];
+			[connectedDeviceBaseView addArrangedSubview:deviceGlyphView];
+
+			connectedDevicesBaseViewArray[i] = connectedDeviceBaseView;
+			[batteryHStackView addArrangedSubview:connectedDeviceBaseView];
+			
+		}
+	}	
+}
 
 void initBatteryView(UIView *view){
 	batteryHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
@@ -99,50 +184,9 @@ void initBatteryView(UIView *view){
 
 	connectedDevicesBaseViewArray = [[NSMutableArray alloc] initWithCapacity:connectedBluetoothDevicesCount];
 
-	for(int i = 0; i<connectedBluetoothDevicesCount; i++){
-		if(i<=6){
-			UIStackView *connectedDeviceBaseView = [[UIStackView alloc] init];
-			connectedDeviceBaseView.axis = UILayoutConstraintAxisVertical;
-			connectedDeviceBaseView.alignment = UIStackViewAlignmentCenter;
-			connectedDeviceBaseView.distribution = UIStackViewDistributionFill;
-			connectedDeviceBaseView.clipsToBounds = TRUE;
-			connectedDeviceBaseView.backgroundColor = [UIColor clearColor];
-			connectedDeviceBaseView.frame = batteryHStackView.bounds;
 
+	reloadBatteryInfo();
 
-			UILabel *deviceNameLabel = [[UILabel alloc] init];
-			deviceNameLabel.text = @"Device #";
-			deviceNameLabel.adjustsFontSizeToFitWidth = TRUE; 
-			// deviceNameLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
-			// [deviceNameLabel.widthAnchor constraintEqualToConstant:35].active = TRUE;
-			// [deviceNameLabel.heightAnchor constraintEqualToConstant:20].active = TRUE;
-			deviceNameLabel.frame = connectedDeviceBaseView.bounds;
-			[connectedDeviceBaseView addArrangedSubview:deviceNameLabel];
-
-
-
-			connectedDevicesBaseViewArray[i] = connectedDeviceBaseView;
-			[batteryHStackView addArrangedSubview:connectedDeviceBaseView];
-		}
-	}	
-
-
-
-	// titleLabel.text = @"Vaon";
-	// CGFloat titleLabelFontSize = 15;
-	// UIFont *titleFont = [UIFont systemFontOfSize:titleLabelFontSize];
-	// titleLabel.font = titleFont;
-	// titleLabel.textAlignment = NSTextAlignmentCenter;
-	// titleLabel.textColor = [UIColor whiteColor];
-	// [titleLabel.widthAnchor constraintEqualToConstant:50].active = TRUE;
-	// [titleLabel.heightAnchor constraintEqualToConstant:100].active = TRUE;
-
-	// UIView *testView = [[UIView alloc] init];
-	// testView.backgroundColor = [UIColor blueColor];
-	// [testView.widthAnchor constraintEqualToConstant:50].active = TRUE;
-	// [testView.heightAnchor constraintEqualToConstant:100].active = TRUE;
-	// [batteryHStackView addArrangedSubview:titleLabel];
-	// [batteryHStackView addArrangedSubview:testView];
 
 	batteryHStackView.translatesAutoresizingMaskIntoConstraints = false;
 

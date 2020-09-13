@@ -29,6 +29,16 @@
 @interface SBSwitcherAppSuggestionBannerView : PLPlatterview
 @end
 
+@interface BCBatteryDevice : NSObject
+@property(nonatomic, readonly) UIImage *glyph;
+- (long long)percentCharge;
+- (BOOL)isBatterSaveModeActive;
+- (BOOL)isCharging;
+- (BOOL)_lowBattery;
+- (NSString*)identifier;
+- (NSString*)name;
+@end
+
 @interface BCBatteryDeviceController : NSObject
 + (id)sharedInstance;
 - (NSArray*)connectedDevices;
