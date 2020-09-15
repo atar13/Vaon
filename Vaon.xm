@@ -36,7 +36,9 @@ weather/AQI view that's similar to battery view
 #import <QuartzCore/QuartzCore.h>
 
 @implementation VaonDeviceBatteryCell
-
+	UIColor *lowPowerModeColor = [UIColor colorWithRed:1 green:0.8 blue:0 alpha:1];
+	UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
+	UIColor *lowBatteryColor = [UIColor redColor];
     -(instancetype)initWithFrame:(CGRect)arg1 device:(BCBatteryDevice *)connectedDevice {
         self.device = connectedDevice;
         self.cellWidth = CGFloat(50);
@@ -101,7 +103,7 @@ weather/AQI view that's similar to battery view
         self.circleOutlineLayer.bounds = self.bounds;
         // self.circleOutlineLayer.position = self.circleBackgroundVisualEffectView.contentView.center;
         self.circleOutlineLayer.fillColor = [UIColor clearColor].CGColor;
-        self.circleOutlineLayer.strokeColor = [UIColor greenColor].CGColor;
+        self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
 		self.circleOutlineLayer.strokeStart = 0;
 		// self.circleOutlineLayer.strokeEnd = 0;
         self.circleOutlineLayer.path = [self.circleOutlinePath CGPath];
@@ -175,6 +177,24 @@ weather/AQI view that's similar to battery view
 	-(CGFloat)devicePercentageAsProgress {
 		double progress = [self getDevicePercentage];
 		return progress/100;
+	}
+	-(BOOL)isDeviceInternal {
+		return [self.device isInternal];
+	}
+	-(BOOL)isLowPowerModeOn {
+		return [self.device isBatterySaverModeActive];
+	}
+	-(BOOL)isBatteryLow {
+		return [self.device isLowBattery];
+	}
+	-(void)updateOutlineColor {
+		if([self isDeviceInternal]&&[self isLowPowerModeOn]){
+			self.circleOutlineLayer.strokeColor = lowPowerModeColor.CGColor;
+		} else if([self isBatteryLow]){
+			self.circleOutlineLayer.strokeColor = lowBatteryColor.CGColor;
+		} else {
+			self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+		}
 	}
 
 @end
@@ -300,6 +320,7 @@ void updateBattery() {
 		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
 			[subview updateDevicePercentageLabel];
 			[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
+			[subview updateOutlineColor];
 			[subview updateCircleOutline];
 
 			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];

@@ -34,9 +34,10 @@
 @property (nonatomic, assign) BOOL fake;
 @property(nonatomic, readonly) UIImage *glyph;
 - (long long)percentCharge;
-- (BOOL)isBatterSaveModeActive;
+- (BOOL)isBatterySaverModeActive;
 - (BOOL)isCharging;
-- (BOOL)_lowBattery;
+- (BOOL)isLowBattery;
+- (BOOL)isInternal;
 - (NSString*)identifier;
 - (NSString*)name;
 @end
@@ -76,4 +77,8 @@
     -(void)resetStrokeEnd;
     -(void)removeFromSuperview;
     -(CGFloat)devicePercentageAsProgress;
+    -(BOOL)isDeviceInternal;
+    -(BOOL)isLowPowerModeOn;
+    -(BOOL)isBatteryLow;
+    -(void)updateOutlineColor;
 @end
