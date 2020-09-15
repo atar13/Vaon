@@ -9,7 +9,7 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = Vaon
 
-Vaon_FILES = Vaon.x
+Vaon_FILES = Vaon.xm 
 Vaon_CFLAGS = -fobjc-arc
 Vaon_EXTRA_FRAMEWORKS += Cephei
 
