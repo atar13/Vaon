@@ -16,13 +16,13 @@
 //async functions to update device count, check to see if current device list has changed (if it has load new stack view elements), refresh the outline, refresh label and glyphs
 //OR have the fade out function remove all the stack views and then every fade in would re make them
 //align circle/outline views on the same axis
-//fade in from normal app switcher app layout 
+//outline doesn't update
+//raise app switcher
 /**
-recent  phone calls
-favorite contacts
+favorite contacts or an option for recents
 device batteries
 favorited apps
-music player
+music player when you 
 countdown 
 airpod pro transparency and noise cancellation
 weather/AQI view that's similar to battery view
@@ -56,14 +56,9 @@ weather/AQI view that's similar to battery view
         self.circleBackgroundVisualEffectView.layer.cornerRadius = self.cellWidth/2;
         self.circleBackgroundVisualEffectView.clipsToBounds = TRUE;
         self.circleBackgroundVisualEffectView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-		self.circleBackgroundVisualEffectView.frame = self.circleBackgroundView.bounds;
+		self.circleBackgroundVisualEffectView.frame = self.bounds;
        	self.circleBackgroundVisualEffectView.contentMode = UIViewContentModeScaleAspectFill;
 
-	    self.circleBackgroundView = [[UIView alloc] init];
-        self.circleBackgroundView.frame = self.bounds;
-        self.circleBackgroundView.backgroundColor = [UIColor clearColor];
-        self.circleBackgroundView.layer.cornerRadius = self.cellWidth/2;
-		self.circleBackgroundView.clipsToBounds = TRUE;
 
         self.devicePercentageLabel = [[UILabel alloc] init];
         // self.devicePercentageString = [NSMutableString stringWithFormat: @"%lld", [self devicePercentage]]; 
@@ -78,13 +73,7 @@ weather/AQI view that's similar to battery view
 
 
 
-        // [self.circleBackgroundView addSubview:self.circleBackgroundVisualEffectView];
         [self.circleBackgroundVisualEffectView.contentView addSubview:self.devicePercentageLabel];
-
-        // self.circleBackgroundView.translatesAutoresizingMaskIntoConstraints = FALSE;
-        // [self.circleBackgroundView.widthAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
-        // [self.circleBackgroundView.heightAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
-        // [self addArrangedSubview:self.circleBackgroundVisualEffectView];
 
         self.circleBackgroundVisualEffectView.translatesAutoresizingMaskIntoConstraints = FALSE;
         [self.circleBackgroundVisualEffectView.widthAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
@@ -95,27 +84,25 @@ weather/AQI view that's similar to battery view
 
         [self addArrangedSubview:self.circleBackgroundVisualEffectView];
 
-		// self.circleBackgroundVisualEffectView.translatesAutoresizingMaskIntoConstraints = FALSE;
-		// [self.circleBackgroundVisualEffectView.centerXAnchor constraintEqualToAnchor:self.circleBackgroundView.centerXAnchor].active = TRUE;
-		// [self.circleBackgroundVisualEffectView.centerYAnchor constraintEqualToAnchor:self.circleBackgroundView.centerYAnchor].active = TRUE;
-
         self.devicePercentageLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
         [self.devicePercentageLabel.centerXAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerXAnchor].active = TRUE;
         [self.devicePercentageLabel.centerYAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerYAnchor].active = TRUE;
 
-        self.circleOutlinePath = [UIBezierPath bezierPath];
-        [self.circleOutlinePath addArcWithCenter:CGPointMake(self.circleBackgroundVisualEffectView.center.x+self.cellWidth/2,self.circleBackgroundVisualEffectView.center.y+self.cellWidth/2)
+        // self.circleOutlinePath = [UIBezierPath bezierPath];
+        self.circleOutlinePath = [UIBezierPath bezierPathWithArcCenter:CGPointMake(self.circleBackgroundVisualEffectView.contentView.center.x+self.cellWidth/2,self.circleBackgroundVisualEffectView.contentView.center.y+self.cellWidth/2)
             radius:self.cellWidth/2
             startAngle:[self degreesToRadians:(-90)]
-            endAngle:[self degreesToRadians:(3.6*(self.devicePercentage)-90)]
+            endAngle:[self degreesToRadians:(3.6*(100)-90)]
             clockwise:TRUE];
-	
+		// self.circleOutlinePath = [UIBezierPath bezierPathWithOvalInRect:self.circleBackgroundVisualEffectView.contentView.bounds];
+
 
         self.circleOutlineLayer = [[CAShapeLayer alloc] init];
-        self.circleOutlineLayer.bounds = self.circleBackgroundVisualEffectView.bounds;
-        self.circleOutlineLayer.position = self.circleBackgroundVisualEffectView.center;
+        self.circleOutlineLayer.bounds = self.bounds;
+        // self.circleOutlineLayer.position = self.circleBackgroundVisualEffectView.contentView.center;
         self.circleOutlineLayer.fillColor = [UIColor clearColor].CGColor;
         self.circleOutlineLayer.strokeColor = [UIColor greenColor].CGColor;
+		self.circleOutlineLayer.strokeStart = 0;
 		// self.circleOutlineLayer.strokeEnd = 0;
         self.circleOutlineLayer.path = [self.circleOutlinePath CGPath];
         self.circleOutlineLayer.lineWidth = self.cellWidth/10;
@@ -125,7 +112,8 @@ weather/AQI view that's similar to battery view
 
         self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
 		// [self.deviceGlyphView.widthAnchor constraintEqualToConstant:50].active = TRUE;
-		// [self.deviceGlyphView.heightAnchor constraintEqualToConstant:50].active = TRUE;
+		self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
+		[self.deviceGlyphView.heightAnchor constraintEqualToConstant:self.cellWidth*0.6].active = TRUE;
 		
         [self addArrangedSubview:self.deviceGlyphView];
 		[self.circleOutlineLayer setNeedsDisplay];
@@ -171,7 +159,7 @@ weather/AQI view that's similar to battery view
         //     startAngle:[self degreesToRadians:(-90)]
         //     endAngle:[self degreesToRadians:(3.6*(self.devicePercentage)-90)]
         //     clockwise:TRUE];
-        self.circleOutlineLayer.path = [self.circleOutlinePath CGPath];
+
 		[self.circleOutlineLayer setNeedsDisplay];
 	}
 
@@ -184,10 +172,10 @@ weather/AQI view that's similar to battery view
 	-(void)removeFromSuperview {
 		[super removeFromSuperview];
 	}
-
-	// -(void)setNeedsDisplay:(BOOL)arg1 {
-	// 	[super setNeedsDisplay:arg1];
-	// }
+	-(CGFloat)devicePercentageAsProgress {
+		double progress = [self getDevicePercentage];
+		return progress/100;
+	}
 
 @end
 
@@ -238,7 +226,6 @@ void initBaseVaonView(UIView* view) {
 	vaonViewBackgroundColor = [UIColor colorNamed:@"clearColor"];
 	blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
 	titleLabel = [[UILabel alloc] initWithFrame:view.bounds];
-	// view.frame = CGRectMake(500, 500, 500, 500);
 	view.clipsToBounds = TRUE;
 	view.layer.cornerRadius = vaonViewCornerRadius;
 	view.alpha = 0;
@@ -284,8 +271,8 @@ void fadeViewIn(UIView *view, CGFloat duration){
 		view.alpha = 1;
 	} 
 	completion:^(BOOL finished) {
-		for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
-			[subview animateOutlineLayer:1];
+		for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){		
+			[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
 		}	
 	}];	
 }
@@ -312,29 +299,28 @@ void updateBattery() {
 
 		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
 			[subview updateDevicePercentageLabel];
+			[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
 			[subview updateCircleOutline];
-			// [subview.circleBackgroundVisualEffectView setNeedsDisplay];
-			// [subview.circleOutlineLayer setNeedsDisplay];
+
+			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 
 			if(![connectedBluetoothDevices containsObject:subview.device]){
-
 				[subviewsToBeRemoved addObject:subview];
 			}
+
 		}
+
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
 			VaonDeviceBatteryCell *cell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
-// ![deviceNames containsObject:device.name]
-			if(![batteryHStackView.subviews containsObject:cell]&&![deviceNames containsObject:device.name]&&batteryHStackView.subviews.count<6){
-				// VaonDeviceBatteryCell *cellToAdd = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device;
+			if((![batteryHStackView.subviews containsObject:cell]&&![deviceNames containsObject:device.name])&&batteryHStackView.subviews.count<6){
 				[subviewsToBeAdded addObject:cell];
 				[deviceNames addObject:cell.deviceName];
 			}
 		}
 
 		for(VaonDeviceBatteryCell *subview in subviewsToBeAdded){
-			// NSUInteger indexOfSubviewInHStack = [[batteryHStackView arrangedSubviews] indexOfObject:subview];
-			// VaonDeviceBatteryCell *subviewToAdd = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:subview.device];
 
 			[batteryHStackView addArrangedSubview:subview];
 
@@ -347,15 +333,12 @@ void updateBattery() {
 				[subviewsToBeAdded removeObject:subview];
 			}];	
 		}
-		
-		
 		for(VaonDeviceBatteryCell *subview in subviewsToBeRemoved){
 			//fade out subview and on completion remove it from arrangedSubview
-			NSUInteger indexOfSubviewInHStack = [[batteryHStackView subviews] indexOfObject:subview];
-			VaonDeviceBatteryCell *subviewToRemove = [[batteryHStackView subviews] objectAtIndex:indexOfSubviewInHStack];
-			subviewToRemove.alpha = 1;
+
+			subview.alpha = 1;
 			[UIView animateWithDuration:0.3 animations:^ {
-				subviewToRemove.alpha = 0;
+				subview.alpha = 0;
 			}
 			completion:^(BOOL finished) {
 					[batteryHStackView removeArrangedSubview:subview];
@@ -376,13 +359,7 @@ void updateBattery() {
 			
 				}];	
 			}
-		
 		}
-
-
-	
-
-		
 	}); 
 }
 

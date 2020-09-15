@@ -75,5 +75,5 @@
     -(void)animateOutlineLayer:(CGFloat)progress;
     -(void)resetStrokeEnd;
     -(void)removeFromSuperview;
-    // -(void)setNeedsDisplay:(BOOL)arg1;
+    -(CGFloat)devicePercentageAsProgress;
 @end
