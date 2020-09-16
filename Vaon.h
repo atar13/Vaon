@@ -9,6 +9,9 @@
 @interface SBSwitcherAppSuggestionContentView : UIView
 @end
 
+@interface SBSwitcherAppSuggestionContentViewController : UIViewController 
+@end
+
 @interface SBFluidSwitcherViewController : UIViewController
 @end
 
@@ -81,4 +84,5 @@
     -(BOOL)isLowPowerModeOn;
     -(BOOL)isBatteryLow;
     -(void)updateOutlineColor;
+    -(void)pulsateOutline:(BOOL)start;
 @end

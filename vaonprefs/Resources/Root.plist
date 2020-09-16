@@ -44,7 +44,35 @@
 				<string>grid</string>
 			</array>
 		</dict>
-				<dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>label</key>
+			<string>Switcher Mode</string>
+			<key>detail</key>
+			<string>VaonModuleSelectionController</string>
+			<key>key</key>
+			<string>module</string>
+			<key>default</key>
+			<string>battery</string>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>validTitles</key>
+			<array>
+				<string>Battery</string>
+				<string>None</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>battery</string>
+				<string>none</string>
+			</array>
+		</dict>
+		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>

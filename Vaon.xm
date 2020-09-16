@@ -105,7 +105,7 @@ weather/AQI view that's similar to battery view
         self.circleOutlineLayer.fillColor = [UIColor clearColor].CGColor;
         self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
 		self.circleOutlineLayer.strokeStart = 0;
-		// self.circleOutlineLayer.strokeEnd = 0;
+		self.circleOutlineLayer.strokeEnd = 0;
         self.circleOutlineLayer.path = [self.circleOutlinePath CGPath];
         self.circleOutlineLayer.lineWidth = self.cellWidth/10;
 		self.circleOutlineLayer.masksToBounds = FALSE;
@@ -196,6 +196,19 @@ weather/AQI view that's similar to battery view
 			self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
 		}
 	}
+	-(void)pulsateOutline:(BOOL)start {
+		//doesnt work yet
+		if(start){
+			[UIView animateWithDuration:0.5 animations:^{
+				self.circleOutlineLayer.strokeColor = [UIColor greenColor].CGColor;
+			}];
+			[UIView animateWithDuration:0.5 animations:^{
+				self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+			}];	
+		}else{
+			self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+		}
+	}
 
 @end
 
@@ -225,7 +238,6 @@ int vaonViewCornerRadius = 17;
 CGFloat dockWidth;
 BOOL vaonViewIsInitialized = FALSE;
 
-UIDeviceOrientation deviceOrientation;
 // long long sbAppSwitcherOrientation;
 SBMainSwitcherViewController *mainAppSwitcherVC;
 long long customSwitcherStyle = 2;
@@ -233,13 +245,35 @@ long long currentSwitcherStyle;
 BOOL appSwitcherOpen = FALSE;
 
 //batteryView variables
-NSUInteger connectedBluetoothDevicesCount;
 NSArray *connectedBluetoothDevices;
-NSMutableArray *connectedDevicesBaseViewArray;
 NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
-int individualDeviceViewWidth = 50; 
+
+void initBatteryView(UIView *view){
+	batteryHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
+	batteryHStackView.axis = UILayoutConstraintAxisHorizontal;
+	batteryHStackView.alignment = UIStackViewAlignmentCenter;
+	batteryHStackView.distribution = UIStackViewDistributionFill;
+	batteryHStackView.spacing = 30;
+	batteryHStackView.clipsToBounds = TRUE;
+
+	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 
 
+	[view addSubview:batteryHStackView];
+
+	if(!(customSwitcherStyle==2)){
+		for(BCBatteryDevice *device in connectedBluetoothDevices){
+			VaonDeviceBatteryCell *cell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
+			[batteryHStackView addArrangedSubview:cell]; 
+		}
+	}
+
+	batteryHStackView.translatesAutoresizingMaskIntoConstraints = false;
+
+	[batteryHStackView.centerXAnchor constraintEqualToAnchor:view.centerXAnchor].active = TRUE;
+	[batteryHStackView.centerYAnchor constraintEqualToAnchor:view.centerYAnchor].active = TRUE;
+
+}
 
 
 void initBaseVaonView(UIView* view) {
@@ -255,45 +289,26 @@ void initBaseVaonView(UIView* view) {
 	vaonBlurView.frame = view.bounds;
 	vaonBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 	[view addSubview:vaonBlurView];
-
 }
 
 
-void initBatteryView(UIView *view){
-	batteryHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
-	batteryHStackView.axis = UILayoutConstraintAxisHorizontal;
-	batteryHStackView.alignment = UIStackViewAlignmentCenter;
-	batteryHStackView.distribution = UIStackViewDistributionFill;
-	batteryHStackView.spacing = 30;
-	batteryHStackView.clipsToBounds = TRUE;
-
-	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
-	connectedBluetoothDevicesCount = connectedBluetoothDevices.count;
-
-	connectedDevicesBaseViewArray = [[NSMutableArray alloc] initWithCapacity:connectedBluetoothDevicesCount];
-
-
-	batteryHStackView.translatesAutoresizingMaskIntoConstraints = false;
-	
-	[view addSubview:batteryHStackView];
-
-
-	[batteryHStackView.centerXAnchor constraintEqualToAnchor:view.centerXAnchor].active = TRUE;
-	[batteryHStackView.centerYAnchor constraintEqualToAnchor:view.centerYAnchor].active = TRUE;
-
-}
 
 
 
 void fadeViewIn(UIView *view, CGFloat duration){
-	
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 1;
 	} 
 	completion:^(BOOL finished) {
 		for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){		
 			[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
+
+			// dispatch_async(dispatch_get_main_queue(), ^{
+			// 	[subview pulsateOutline:TRUE];
+			// });
+			
 		}	
+
 	}];	
 }
 
@@ -305,14 +320,15 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	completion:^(BOOL finished) {
 		for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
 			[subview resetStrokeEnd];
+			// [subview pulsateOutline:FALSE];
 		}	
 	}];	
 }
 
 
-void updateBattery() {
-
+void updateBattery(){
 	dispatch_async(dispatch_get_main_queue(), ^{
+
 		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 		NSMutableArray *subviewsToBeRemoved = [[NSMutableArray alloc] init];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
@@ -376,8 +392,7 @@ void updateBattery() {
 				completion:^(BOOL finished) {
 					[subview removeFromSuperview];
 					[batteryHStackView removeArrangedSubview:subview];
-					[deviceNames removeObject:subview.deviceName];
-			
+					[deviceNames removeObject:subview.deviceName];			
 				}];	
 			}
 		}
@@ -391,7 +406,7 @@ void updateBattery() {
 		%orig;
 	}
 	-(void)setBatterSaveModeActive:(BOOL)arg1 {
-		// updateBattery();
+		updateBattery();
 		%orig;
 	}
 	-(void)setPercentCharge:(NSInteger)arg1 {
@@ -415,18 +430,13 @@ void updateBattery() {
 	//creates vaonview for normal/non-grid app switcher 
 	-(void)didMoveToWindow {
 		%orig;
-		
-		// UIInterfaceOrientation appSwitcherOrientation = [UIApplication sharedApplication].windows[0].windowScene.interfaceOrientation;
-		deviceOrientation = [UIDevice currentDevice].orientation;
 		CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
+		if(!vaonViewIsInitialized&&!(customSwitcherStyle==2)){
 
-		if(!vaonViewIsInitialized){
 			vaonView = [[UIView alloc] init];
 
 			initBaseVaonView(vaonView);
-
 			initBatteryView(vaonView);
-
 			[self addSubview:vaonView];
 
 			vaonView.translatesAutoresizingMaskIntoConstraints = false;
@@ -440,15 +450,39 @@ void updateBattery() {
 		}
 		//fades in the non-grid view when the app switcher is shown
 		if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
-			// [UIView animateWithDuration:0.4 animations:^ {
-			// 	vaonView.alpha = 1;
-			// }];
+		// 	[UIView animateWithDuration:0.4 animations:^ {
+		// 		vaonView.alpha = 1;
+		// 	}];
 			fadeViewIn(vaonView, 0.3);
 		}
 
 		
 	}
 %end
+
+// %hook SBSwitcherAppSuggestionContentViewController
+// 	-(void)viewDidLoad {
+// 		CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
+// 		if(!vaonViewIsInitialized&&!(customSwitcherStyle==2)){
+
+// 			vaonView = [[UIView alloc] init];
+
+// 			initBaseVaonView(vaonView);
+
+// 			initBatteryView(vaonView);
+// 			[self.view addSubview:vaonView];
+
+// 			vaonView.translatesAutoresizingMaskIntoConstraints = false;
+// 			[vaonView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-23].active = TRUE;
+// 			[vaonView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = TRUE;
+// 			[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = TRUE;
+// 			[vaonView.heightAnchor constraintEqualToConstant:(0.12*mainScreen)].active = TRUE;
+
+
+// 			vaonViewIsInitialized = TRUE;
+// 		}
+// 	}
+// %end
 
 %hook SBMainSwitcherViewController
 
