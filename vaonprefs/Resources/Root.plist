@@ -52,15 +52,15 @@
 			<key>cell</key>
 			<string>PSLinkListCell</string>
 			<key>label</key>
-			<string>Switcher Mode</string>
+			<string>Module</string>
 			<key>detail</key>
-			<string>VaonModuleSelectionController</string>
+			<string>PSListItemsController</string>
 			<key>key</key>
-			<string>module</string>
-			<key>default</key>
-			<string>battery</string>
-			<key>defaults</key>
-			<string>com.atar13.vaonprefs</string>
+			<string>moduleSelection</string>
+			<key>id</key>
+			<string>MODULE_SELECTION</string>
+			<key>PostNotification</key>
+			<string>com.atar13.vaonprefs/prefschanged</string>
 			<key>validTitles</key>
 			<array>
 				<string>Battery</string>
@@ -71,6 +71,10 @@
 				<string>battery</string>
 				<string>none</string>
 			</array>
+			<key>default</key>
+			<string>battery</string>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>			
 		</dict>
 		<dict>
 			<key>cell</key>

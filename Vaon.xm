@@ -198,16 +198,28 @@ weather/AQI view that's similar to battery view
 	}
 	-(void)pulsateOutline:(BOOL)start {
 		//doesnt work yet
-		if(start){
-			[UIView animateWithDuration:0.5 animations:^{
-				self.circleOutlineLayer.strokeColor = [UIColor greenColor].CGColor;
+		// if(start){
+			// [UIView animateWithDuration:0.5 animations:^{
+			// 	self.circleOutlineLayer.strokeColor = [UIColor greenColor].CGColor;
+			// }];
+			[UIView animateWithDuration:10 animations:^{
+				self.circleOutlineLayer.strokeColor = lowBatteryColor.CGColor;
+			}completion:^(BOOL finished) {
+								[UIView animateWithDuration:0.5 animations:^{
+					self.circleOutlineLayer.strokeColor = [UIColor greenColor].CGColor;
+				}completion:^(BOOL fin) {
+								[UIView animateWithDuration:0.5 animations:^{
+				self.circleOutlineLayer.strokeColor = [UIColor blueColor].CGColor;
 			}];
-			[UIView animateWithDuration:0.5 animations:^{
-				self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
-			}];	
-		}else{
-			self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
-		}
+				}];
+			}
+			];	
+			// [UIView animateWithDuration:0.5 animations:^{
+			// 	self.circleOutlineLayer.strokeColor = [UIColor greenColor].CGColor;
+			// }];
+		// }else{
+		// 	self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+		// }
 	}
 
 @end
@@ -222,6 +234,7 @@ HBPreferences *prefs;
 BOOL isEnabled;
 
 NSString *switcherMode = nil;
+NSString *selectedModule = nil;
 
 UIView *vaonView;
 UIView *vaonGridView;
@@ -241,7 +254,6 @@ BOOL vaonViewIsInitialized = FALSE;
 // long long sbAppSwitcherOrientation;
 SBMainSwitcherViewController *mainAppSwitcherVC;
 long long customSwitcherStyle = 2;
-long long currentSwitcherStyle; 
 BOOL appSwitcherOpen = FALSE;
 
 //batteryView variables
@@ -298,18 +310,20 @@ void initBaseVaonView(UIView* view) {
 void fadeViewIn(UIView *view, CGFloat duration){
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 1;
-	} 
+	} 	
 	completion:^(BOOL finished) {
-		for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){		
-			[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
+		if([selectedModule isEqual:@"battery"]){
+			for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){		
+				[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
 
-			// dispatch_async(dispatch_get_main_queue(), ^{
-			// 	[subview pulsateOutline:TRUE];
-			// });
-			
-		}	
+				// dispatch_async(dispatch_get_main_queue(), ^{
+				// 	[subview pulsateOutline:TRUE];
+				// });
+			}	
+		}
 
 	}];	
+
 }
 
 void fadeViewOut(UIView *view, CGFloat duration){
@@ -318,10 +332,12 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		view.alpha = 0;
 	}
 	completion:^(BOOL finished) {
-		for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
-			[subview resetStrokeEnd];
-			// [subview pulsateOutline:FALSE];
-		}	
+		if([selectedModule isEqual:@"battery"]){
+			for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
+				[subview resetStrokeEnd];
+				// [subview pulsateOutline:FALSE];
+			}	
+		}
 	}];	
 }
 
@@ -399,6 +415,9 @@ void updateBattery(){
 	}); 
 }
 
+%group BatteryModeUpdates
+
+
 %hook BCBatteryDevice
 
 	-(void)setCharging: (BOOL)arg1 {
@@ -422,7 +441,7 @@ void updateBattery(){
  
  %end
 
-
+%end
 
 
 %hook SBSwitcherAppSuggestionContentView
@@ -430,32 +449,36 @@ void updateBattery(){
 	//creates vaonview for normal/non-grid app switcher 
 	-(void)didMoveToWindow {
 		%orig;
-		CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
-		if(!vaonViewIsInitialized&&!(customSwitcherStyle==2)){
+		if(![selectedModule isEqual:@"none"]){
+			CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
+			if(!vaonViewIsInitialized&&!(customSwitcherStyle==2)){
 
-			vaonView = [[UIView alloc] init];
+				vaonView = [[UIView alloc] init];
 
-			initBaseVaonView(vaonView);
-			initBatteryView(vaonView);
-			[self addSubview:vaonView];
+				initBaseVaonView(vaonView);
 
-			vaonView.translatesAutoresizingMaskIntoConstraints = false;
-			[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = TRUE;
-			[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = TRUE;
-			[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = TRUE;
-			[vaonView.heightAnchor constraintEqualToConstant:(0.12*mainScreen)].active = TRUE;
+				if([selectedModule isEqual:@"battery"]){	
+					initBatteryView(vaonView);
+				}
+				[self addSubview:vaonView];
+
+				vaonView.translatesAutoresizingMaskIntoConstraints = false;
+				[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-23].active = TRUE;
+				[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = TRUE;
+				[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = TRUE;
+				[vaonView.heightAnchor constraintEqualToConstant:(0.12*mainScreen)].active = TRUE;
 
 
-			vaonViewIsInitialized = TRUE;
+				vaonViewIsInitialized = TRUE;
+			}
+			//fades in the non-grid view when the app switcher is shown
+			if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
+			// 	[UIView animateWithDuration:0.4 animations:^ {
+			// 		vaonView.alpha = 1;
+			// 	}];
+				fadeViewIn(vaonView, 0.3);
+			}
 		}
-		//fades in the non-grid view when the app switcher is shown
-		if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
-		// 	[UIView animateWithDuration:0.4 animations:^ {
-		// 		vaonView.alpha = 1;
-		// 	}];
-			fadeViewIn(vaonView, 0.3);
-		}
-
 		
 	}
 %end
@@ -491,33 +514,36 @@ void updateBattery(){
 		%orig;
 		mainAppSwitcherVC = self;
 		dockWidth = mainAppSwitcherVC.view.frame.size.width*0.943;	
-		
-		//initializes vaon for grid mode 
-		if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
-			if(!vaonViewIsInitialized){
-				vaonGridView = [[UIView alloc] init];
+		if(![selectedModule isEqual:@"none"]){	
 
-				initBaseVaonView(vaonGridView);
+			//initializes vaon for grid mode 
+			if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
+				if(!vaonViewIsInitialized){
+					vaonGridView = [[UIView alloc] init];
 
+					initBaseVaonView(vaonGridView);
 
-				initBatteryView(vaonGridView);
-				
-				[self.view addSubview:vaonGridView];
+					if([selectedModule isEqual:@"battery"]){	
+						initBatteryView(vaonGridView);
+					}
+					
+					[self.view addSubview:vaonGridView];
 
-				vaonGridView.translatesAutoresizingMaskIntoConstraints = false;
-				[vaonGridView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-23].active = TRUE;
-				[vaonGridView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = TRUE;
-				[vaonGridView.widthAnchor constraintEqualToConstant:dockWidth].active = TRUE;
-				[vaonGridView.heightAnchor constraintEqualToConstant:113].active = TRUE;
+					vaonGridView.translatesAutoresizingMaskIntoConstraints = false;
+					[vaonGridView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-23].active = TRUE;
+					[vaonGridView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = TRUE;
+					[vaonGridView.widthAnchor constraintEqualToConstant:dockWidth].active = TRUE;
+					[vaonGridView.heightAnchor constraintEqualToConstant:113].active = TRUE;
 
-				vaonViewIsInitialized = TRUE;
+					vaonViewIsInitialized = TRUE;
+				}
 			}
 		}
 	}
 
 	
 	-(void)switcherContentController:(id)arg1 setContainerStatusBarHidden:(BOOL)arg2 animationDuration:(double)arg3 {
-		if (arg2 == FALSE) {
+		if (arg2 == FALSE && ![selectedModule isEqual:@"none"]) {
 			// [UIView animateWithDuration:0.2 animations:^ {
 			// 	vaonView.alpha = 0;
 			// }];
@@ -529,16 +555,17 @@ void updateBattery(){
 
 	//fade out vaon when entering an app layout from the switcher
 	-(void)_configureRequest:(id)arg1 forSwitcherTransitionRequest:(id)arg2 withEventLabel:(id)arg3 {
+		if(![selectedModule isEqual:@"none"]){
+			NSString *switcherTransitionRequest = [[NSString alloc] initWithFormat:@"%@", arg2];
+			NSUInteger indexAfterAppLayout =  [switcherTransitionRequest rangeOfString: @"appLayout: "].location;
+			NSString *appLayoutString = [switcherTransitionRequest substringFromIndex:indexAfterAppLayout];
 
-		NSString *switcherTransitionRequest = [[NSString alloc] initWithFormat:@"%@", arg2];
-		NSUInteger indexAfterAppLayout =  [switcherTransitionRequest rangeOfString: @"appLayout: "].location;
-		NSString *appLayoutString = [switcherTransitionRequest substringFromIndex:indexAfterAppLayout];
-
-		if(![appLayoutString containsString:@"appLayout: 0x0;"]){		
-			// [UIView animateWithDuration:0.2 animations:^ {
-			// 	vaonView.alpha = 0;
-			// }];
-			fadeViewOut(vaonView, 0.2);
+			if(![appLayoutString containsString:@"appLayout: 0x0;"]){		
+				// [UIView animateWithDuration:0.2 animations:^ {
+				// 	vaonView.alpha = 0;
+				// }];
+				fadeViewOut(vaonView, 0.2);
+			}
 		}
 		%orig;
 	}
@@ -549,19 +576,21 @@ void updateBattery(){
 	//fade in and out for vaon in grid mode
 	-(void)_updateDisplayLayoutElementForLayoutState: (id)arg1 {
 		%orig;
-		appSwitcherOpen = [self isAnySwitcherVisible];
-		if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
-			if(!appSwitcherOpen){
-				// [UIView animateWithDuration:0.3 animations:^ {
-				// 	vaonGridView.alpha = 0;
-				// }];	
-				fadeViewOut(vaonGridView, 0.3);
+		if(![selectedModule isEqual:@"none"]){
+			appSwitcherOpen = [self isAnySwitcherVisible];
+			if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
+				if(!appSwitcherOpen){
+					// [UIView animateWithDuration:0.3 animations:^ {
+					// 	vaonGridView.alpha = 0;
+					// }];	
+					fadeViewOut(vaonGridView, 0.3);
 
-			}else{
-				// [UIView animateWithDuration:0.3 animations:^ {
-				// 	vaonGridView.alpha = 1;
-				// }];	
-				fadeViewIn(vaonGridView, 0.3);
+				}else{
+					// [UIView animateWithDuration:0.3 animations:^ {
+					// 	vaonGridView.alpha = 1;
+					// }];	
+					fadeViewIn(vaonGridView, 0.3);
+				}
 			}
 		}
 
@@ -575,7 +604,6 @@ void updateBattery(){
 
 	//Enable and customize grid mode 
 	-(void)setSwitcherStyle: (long long)arg1 {
-		currentSwitcherStyle = self.switcherStyle;
 		%orig(customSwitcherStyle);
 	}
 
@@ -605,6 +633,8 @@ void updateSettings(){
 	[prefs registerBool:&isEnabled default:TRUE forKey:@"isEnabled"];
 
 	[prefs registerObject:&switcherMode default:@"stock" forKey:@"switcherMode"];
+
+	[prefs registerObject:&selectedModule default:@"battery" forKey:@"moduleSelection"];
 }
 
 %ctor {
@@ -613,6 +643,9 @@ void updateSettings(){
 
 	if(isEnabled){
 		%init;
+		if([selectedModule isEqual:@"battery"]){
+			%init(BatteryModeUpdates);
+		}
 	}
 
 	if([switcherMode isEqual:@"grid"]){
@@ -620,4 +653,5 @@ void updateSettings(){
 	}else{
 		customSwitcherStyle = 1;
 	}
+
 }

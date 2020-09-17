@@ -1,44 +1,42 @@
 #include "VaonRootListController.h"
 
 @implementation VaonModuleSelectionController
-	- (NSArray *)specifiers {
-		if (!_specifiers) {
-			_specifiers = [self loadSpecifiersFromPlistName:@"ModuleSelection" target:self];
-		}
+	// - (NSArray *)specifiers {
+	// 	if (!_specifiers) {
+	// 		_specifiers = [self loadSpecifiersFromPlistName:@"ModuleSelection" target:self];
+	// 	}
 
-		return _specifiers;
-	}
-    // -(void)viewDidLoad {
-    //     [super viewDidLoad];
-	// 	self.navigationItem.title = @"Select Module";
-   	//  	self.modules = [[NSArray alloc] initWithObjects:@"Battery",@"None",nil];
+	// 	return _specifiers;
+	// }
 
-    //     self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
-	// 	self.tableView.delegate = self;
-	// 	self.tableView.dataSource = self;
+	// - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+	// 		NSString *identifier = [[NSString alloc] initWithFormat:@"Module"];
+	// 		UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier];
+	// 		cell.textLabel.text = self.modules[indexPath.row];
+	// 		cell.accessoryType = self.selectedIndexPath == indexPath ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+	// 		return cell;
+	// }
 
-	// 	[self.view addSubview:self.tableView];
 
-    // }
-
-  	// // -(NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-	// // 	  return 1;
-	// //   }
 	// -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-	// 	return self.modules.count;
+	// 	return 2;
 	// }
-	// -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-	// 	static NSString *cellIdentifier = @"moduleCell";
-	// 	UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:cellIdentifier];
-	// 	if(cell == nil) {
-    //     	cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellIdentifier];
-    // 	}
-	// 	cell.textLabel.text = [self.modules objectAtIndex:indexPath.row];
-	// 	return cell;
+
+	// - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+	// 	return tableView.numberOfSections;
 	// }
-	// -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-	// 	// HBLogWarn(@"%@",[self.modules objectAtIndex:indexPath.row]);
+
+
+	// - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	// 	if(indexPath.section==0){
+    //     	[tableView cellForRowAtIndexPath:self.selectedIndexPath].accessoryType = UITableViewCellAccessoryNone;
+	// 		self.selectedIndexPath = indexPath;
+	// 		[tableView cellForRowAtIndexPath:self.selectedIndexPath].accessoryType = UITableViewCellAccessoryCheckmark;
+
+	// 		[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	// 	}
 	// }
+
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
@@ -50,6 +48,22 @@
         UIBarButtonItem *respringButton = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:self action:@selector(respring)];
         self.navigationItem.rightBarButtonItem = respringButton; 
     }
+
+	// -(void)viewDidLoad {
+	// 	[super viewDidLoad];
+	// 	self.tableView.delegate = self;
+	// 	self.tableView.dataSource = self;
+	// 	self.title = @"Modules";
+	// 	self.moduleTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
+
+	// 	id modules[] = {@"Battery", @"None"};
+	// 	self.count = sizeof(modules) / sizeof(id);
+	// 	self.modules = [NSArray arrayWithObjects:modules count:self.count];
+
+	// 	self.selectedIndexPath = [NSIndexPath indexPathForRow:0 inSection:0];
+	// 	self.tableView = self.moduleTableView;
+	// 	// [self.view addSubview:self.moduleTableView];
+	// }
     
 
 @end
@@ -71,6 +85,7 @@
 	const char* args[] = {"killall", "-9", "backboardd", NULL};
 	posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
 }
+
 //methods for links to social media/github
 -(void)reddit {
 	[[UIApplication sharedApplication] 
