@@ -221,6 +221,14 @@ weather/AQI view that's similar to battery view
 		// 	self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
 		// }
 	}
+	-(void)updatePercentageColor {
+		if([self.device isCharging]){
+			self.devicePercentageLabel.textColor = [UIColor greenColor];
+		}else {
+			self.devicePercentageLabel.textColor = [UIColor labelColor];
+
+		}
+	}
 
 @end
 
@@ -303,23 +311,117 @@ void initBaseVaonView(UIView* view) {
 	[view addSubview:vaonBlurView];
 }
 
+void updateBattery(){
+	dispatch_async(dispatch_get_main_queue(), ^{
 
+		//check if product identifier/acessory identifier already exists in hstackview
+
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		// NSMutableArray *subviewsToBeRemoved = [[NSMutableArray alloc] init];
+		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
+
+
+		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
+			// [subview updateDevicePercentageLabel];
+			// [subview animateOutlineLayer:[subview devicePercentageAsProgress]];
+			// [subview updateOutlineColor];
+			// [subview updatePercentageColor];
+			// [subview updateCircleOutline];
+
+
+			HBLogWarn(@"HOPST %@",[subview.device identifier]);
+
+			// if(![connectedBluetoothDevices containsObject:subview.device] || subview.device == nil){
+
+			// 	[subviewsToBeRemoved addObject:subview];
+			// }
+
+		}
+
+		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+
+		for(BCBatteryDevice *device in connectedBluetoothDevices){
+			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
+			NSMutableArray *cellDevices = [[NSMutableArray alloc] init];
+			for(VaonDeviceBatteryCell *cell in batteryHStackView.subviews){
+				if(!(cell.device==nil)){
+					[cellDevices addObject:cell.device];
+				}
+			}
+			if((![batteryHStackView.subviews containsObject:newCell]&&![deviceNames containsObject:device.name])&&![cellDevices containsObject:device]&&batteryHStackView.subviews.count<6){
+				[subviewsToBeAdded addObject:newCell];
+				[deviceNames addObject:newCell.deviceName];
+			}
+		}
+
+		for(VaonDeviceBatteryCell *subview in subviewsToBeAdded){
+
+			[batteryHStackView addArrangedSubview:subview];
+
+			subview.alpha = 0;
+			[UIView animateWithDuration:0.3 animations:^ {
+				subview.alpha = 1;
+
+			}
+			completion:^(BOOL finished) {
+				[subviewsToBeAdded removeObject:subview];
+			}];	
+		}
+		// for(VaonDeviceBatteryCell *subview in subviewsToBeRemoved){
+		// 	//fade out subview and on completion remove it from arrangedSubview
+
+		// 	subview.alpha = 1;
+		// 	[UIView animateWithDuration:0.3 animations:^ {
+		// 		subview.alpha = 0;
+		// 	}
+		// 	completion:^(BOOL finished) {
+		// 			[batteryHStackView removeArrangedSubview:subview];
+		// 			[deviceNames removeObject:subview.deviceName];
+		// 			[subviewsToBeRemoved removeObject:subview];
+
+		// 	}];	
+		// }
+		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
+					// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+			HBLogWarn(@"necking %@ asdkfa;dlkf %i", subview.device, [connectedBluetoothDevices containsObject:subview.device]);
+			if((![connectedBluetoothDevices containsObject:subview.device] && ![subview.device isConnected]) || subview.device == nil ){
+				subview.alpha = 1;
+				[UIView animateWithDuration:0.3 animations:^ {
+					subview.alpha = 0;
+				}
+				completion:^(BOOL finished) {
+					[subview removeFromSuperview];
+					// [batteryHStackView removeArrangedSubview:subview];
+					[deviceNames removeObject:subview.deviceName];				
+				}];	
+			}
+			[subview updateDevicePercentageLabel];
+			[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
+			[subview updateOutlineColor];
+			[subview updatePercentageColor];
+			[subview updateCircleOutline];
+		}
+	}); 
+}
 
 
 
 void fadeViewIn(UIView *view, CGFloat duration){
+
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 1;
 	} 	
 	completion:^(BOOL finished) {
 		if([selectedModule isEqual:@"battery"]){
-			for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){		
-				[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
+			updateBattery();
 
-				// dispatch_async(dispatch_get_main_queue(), ^{
-				// 	[subview pulsateOutline:TRUE];
-				// });
-			}	
+			// for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){		
+			// 	[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
+
+			// 	// dispatch_async(dispatch_get_main_queue(), ^{
+			// 	// 	[subview pulsateOutline:TRUE];
+			// 	// });
+			// }	
 		}
 
 	}];	
@@ -342,87 +444,17 @@ void fadeViewOut(UIView *view, CGFloat duration){
 }
 
 
-void updateBattery(){
-	dispatch_async(dispatch_get_main_queue(), ^{
 
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
-		NSMutableArray *subviewsToBeRemoved = [[NSMutableArray alloc] init];
-		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
-
-		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
-			[subview updateDevicePercentageLabel];
-			[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
-			[subview updateOutlineColor];
-			[subview updateCircleOutline];
-
-			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
-
-			if(![connectedBluetoothDevices containsObject:subview.device]){
-				[subviewsToBeRemoved addObject:subview];
-			}
-
-		}
-
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
-
-		for(BCBatteryDevice *device in connectedBluetoothDevices){
-			VaonDeviceBatteryCell *cell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
-			if((![batteryHStackView.subviews containsObject:cell]&&![deviceNames containsObject:device.name])&&batteryHStackView.subviews.count<6){
-				[subviewsToBeAdded addObject:cell];
-				[deviceNames addObject:cell.deviceName];
-			}
-		}
-
-		for(VaonDeviceBatteryCell *subview in subviewsToBeAdded){
-
-			[batteryHStackView addArrangedSubview:subview];
-
-			subview.alpha = 0;
-			[UIView animateWithDuration:0.3 animations:^ {
-				subview.alpha = 1;
-
-			}
-			completion:^(BOOL finished) {
-				[subviewsToBeAdded removeObject:subview];
-			}];	
-		}
-		for(VaonDeviceBatteryCell *subview in subviewsToBeRemoved){
-			//fade out subview and on completion remove it from arrangedSubview
-
-			subview.alpha = 1;
-			[UIView animateWithDuration:0.3 animations:^ {
-				subview.alpha = 0;
-			}
-			completion:^(BOOL finished) {
-					[batteryHStackView removeArrangedSubview:subview];
-					[subviewsToBeRemoved removeObject:subview];
-					[deviceNames removeObject:subview.deviceName];
-			}];	
-		}
-		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
-			if(![connectedBluetoothDevices containsObject:subview.device] || subview.device == nil){
-				subview.alpha = 1;
-				[UIView animateWithDuration:0.3 animations:^ {
-					subview.alpha = 0;
-				}
-				completion:^(BOOL finished) {
-					[subview removeFromSuperview];
-					[batteryHStackView removeArrangedSubview:subview];
-					[deviceNames removeObject:subview.deviceName];			
-				}];	
-			}
-		}
-	}); 
-}
 
 %group BatteryModeUpdates
 
 
 %hook BCBatteryDevice
 
+//maybe add -(void)_postDidChangeNotification;, -(void)addDeviceChangeHandler:(/*^block*/id)arg1 withIdentifier:(id)arg2 ;, -(void)_queue_addDeviceChangeHandler:(/*^block*/id)arg1 withIdentifier:(id)arg2 ;
 	-(void)setCharging: (BOOL)arg1 {
-		updateBattery();
 		%orig;
+		updateBattery();
 	}
 	-(void)setBatterSaveModeActive:(BOOL)arg1 {
 		updateBattery();
@@ -439,6 +471,16 @@ void updateBattery(){
 		updateBattery();
 	}
  
+ %end
+
+ %hook BCBatteryDeviceController
+
+ -(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
+	 %orig;
+	//  HBLogWarn(@"REMOVED DEVICE");
+	updateBattery();
+ }
+
  %end
 
 %end
@@ -514,6 +556,8 @@ void updateBattery(){
 		%orig;
 		mainAppSwitcherVC = self;
 		dockWidth = mainAppSwitcherVC.view.frame.size.width*0.943;	
+
+		
 		if(![selectedModule isEqual:@"none"]){	
 
 			//initializes vaon for grid mode 

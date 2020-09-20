@@ -43,6 +43,8 @@
 - (BOOL)isInternal;
 - (NSString*)identifier;
 - (NSString*)name;
+- (NSString *)identifier;
+- (BOOL)isConnected;
 @end
 
 
@@ -51,6 +53,7 @@
 + (id)sharedInstance;
 - (NSArray*)connectedDevices;
 -(void)_queue_addDeviceChangeHandler:(/*^block*/id)arg1 withIdentifier:(id)arg2 ;
+ -(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1;
 @end
 
 
@@ -85,4 +88,5 @@
     -(BOOL)isBatteryLow;
     -(void)updateOutlineColor;
     -(void)pulsateOutline:(BOOL)start;
+    -(void)updatePercentageColor;
 @end
