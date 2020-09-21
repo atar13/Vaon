@@ -11,6 +11,7 @@ TWEAK_NAME = Vaon
 
 Vaon_FILES = Vaon.xm 
 Vaon_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
+Vaon_FRAMEWORKS += QuartzCore
 Vaon_EXTRA_FRAMEWORKS += Cephei
 
 include $(THEOS_MAKE_PATH)/tweak.mk

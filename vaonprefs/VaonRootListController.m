@@ -1,124 +1,142 @@
 #include "VaonRootListController.h"
 
-@implementation VaonModuleSelectionController
-	// - (NSArray *)specifiers {
-	// 	if (!_specifiers) {
-	// 		_specifiers = [self loadSpecifiersFromPlistName:@"ModuleSelection" target:self];
-	// 	}
+//maybe check if the user is going back to the previous value a speciefier was at before prompting the alert to repsring
+//make a new HBPrefs
 
-	// 	return _specifiers;
-	// }
+@implementation BatteryPreferencesController
+	- (NSArray *)specifiers {
+		if (!_specifiers) {
+			_specifiers = [self loadSpecifiersFromPlistName:@"Battery" target:self];
+		}
 
-	// - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-	// 		NSString *identifier = [[NSString alloc] initWithFormat:@"Module"];
-	// 		UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:identifier];
-	// 		cell.textLabel.text = self.modules[indexPath.row];
-	// 		cell.accessoryType = self.selectedIndexPath == indexPath ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
-	// 		return cell;
-	// }
-
-
-	// -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-	// 	return 2;
-	// }
-
-	// - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
-	// 	return tableView.numberOfSections;
-	// }
-
-
-	// - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-	// 	if(indexPath.section==0){
-    //     	[tableView cellForRowAtIndexPath:self.selectedIndexPath].accessoryType = UITableViewCellAccessoryNone;
-	// 		self.selectedIndexPath = indexPath;
-	// 		[tableView cellForRowAtIndexPath:self.selectedIndexPath].accessoryType = UITableViewCellAccessoryCheckmark;
-
-	// 		[tableView deselectRowAtIndexPath:indexPath animated:YES];
-	// 	}
-	// }
-
+		return _specifiers;
+	}
+	-(void)viewDidLoad {
+		[super viewDidLoad];
+		self.title = @"Battery Settings";
+	}
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
 		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
 	}
 
+	-(void)askBeforeRespring {
+			UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Are you sure you want to respring?" message:@"" preferredStyle:UIAlertControllerStyleAlert];
+			UIAlertAction* respringAction = [UIAlertAction actionWithTitle:@"Respring" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+				[self respring];
+			}];
+			UIAlertAction* laterAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action) {}];
+			[alert addAction:respringAction];
+			[alert addAction:laterAction];
+			[self presentViewController:alert animated:YES completion:nil];
+	}
+
     -(void)viewWillAppear:(BOOL)animated {
         [super viewWillAppear:animated];
-        UIBarButtonItem *respringButton = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:self action:@selector(respring)];
+        UIBarButtonItem *respringButton = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:self action:@selector(askBeforeRespring)];
         self.navigationItem.rightBarButtonItem = respringButton; 
     }
 
-	// -(void)viewDidLoad {
-	// 	[super viewDidLoad];
-	// 	self.tableView.delegate = self;
-	// 	self.tableView.dataSource = self;
-	// 	self.title = @"Modules";
-	// 	self.moduleTableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
+	-(void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier{
+		[super setPreferenceValue:value specifier:specifier];
+		if([specifier.properties[@"key"] isEqualToString:@"hideInternal"]){
+			UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Respring is required" message:@"To apply this change you must respring your device" preferredStyle:UIAlertControllerStyleAlert];
+			UIAlertAction* respringAction = [UIAlertAction actionWithTitle:@"Respring" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+				[self respring];
+			}];
+			UIAlertAction* laterAction = [UIAlertAction actionWithTitle:@"Later" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action) {}];
+			[alert addAction:respringAction];
+			[alert addAction:laterAction];
+			[self presentViewController:alert animated:YES completion:nil];
+		}
+	}
 
-	// 	id modules[] = {@"Battery", @"None"};
-	// 	self.count = sizeof(modules) / sizeof(id);
-	// 	self.modules = [NSArray arrayWithObjects:modules count:self.count];
 
-	// 	self.selectedIndexPath = [NSIndexPath indexPathForRow:0 inSection:0];
-	// 	self.tableView = self.moduleTableView;
-	// 	// [self.view addSubview:self.moduleTableView];
-	// }
     
 
 @end
 
 @implementation VaonRootListController
-//-(id)readPreferenceValue:(PSSpecifier*)specifier; use this to get the current modele selected and make a method that returns it and passes it into the pslinkcell in root.plist
+	//-(id)readPreferenceValue:(PSSpecifier*)specifier; use this to get the current modele selected and make a method that returns it and passes it into the pslinkcell in root.plist
 
 
-- (NSArray *)specifiers {
-	if (!_specifiers) {
-		_specifiers = [self loadSpecifiersFromPlistName:@"Root" target:self];
+	- (NSArray *)specifiers {
+		if (!_specifiers) {
+			_specifiers = [self loadSpecifiersFromPlistName:@"Root" target:self];
+		}
+
+		return _specifiers;
 	}
 
-	return _specifiers;
-}
+	-(void)respring {
+		pid_t pid;
+		const char* args[] = {"killall", "-9", "backboardd", NULL};
+		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+	}
+	-(void)askBeforeRespring {
+		UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Are you sure you want to respring?" message:@"" preferredStyle:UIAlertControllerStyleAlert];
+		UIAlertAction* respringAction = [UIAlertAction actionWithTitle:@"Respring" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+			[self respring];
+		}];
+		UIAlertAction* laterAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action) {}];
+		[alert addAction:respringAction];
+		[alert addAction:laterAction];
+		[self presentViewController:alert animated:YES completion:nil];
+	}
 
--(void)respring {
-	pid_t pid;
-	const char* args[] = {"killall", "-9", "backboardd", NULL};
-	posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
-}
+	//methods for links to social media/github
+	-(void)reddit {
+		[[UIApplication sharedApplication] 
+			openURL:[NSURL URLWithString:@"https://reddit.com/u/atar13"] 
+			options:@{} 
+		completionHandler:nil];
+	}
 
-//methods for links to social media/github
--(void)reddit {
-	[[UIApplication sharedApplication] 
-		openURL:[NSURL URLWithString:@"https://reddit.com/u/atar13"] 
-		options:@{} 
-	completionHandler:nil];
-}
+	- (void)twitter {
+		[[UIApplication sharedApplication] 
+			openURL:[NSURL URLWithString:@"https://twitter.com/atar137h"] 
+			options:@{} 
+		completionHandler:nil];
+	}
 
-- (void)twitter {
-	[[UIApplication sharedApplication] 
-		openURL:[NSURL URLWithString:@"https://twitter.com/atar137h"] 
-		options:@{} 
-	completionHandler:nil];
-}
+	-(void)email{
+		[[UIApplication sharedApplication] 
+			openURL:[NSURL URLWithString:@"mailto:atar13dev@gmail.com"] 
+			options:@{} 
+		completionHandler:nil];
+	}
 
--(void)email{
-	[[UIApplication sharedApplication] 
-		openURL:[NSURL URLWithString:@"mailto:atar13dev@gmail.com"] 
-		options:@{} 
-	completionHandler:nil];
-}
+	-(void)github{
+		[[UIApplication sharedApplication] 
+			openURL:[NSURL URLWithString:@"https://github.com/atar13/Vaon"] 
+			options:@{} 
+		completionHandler:nil];
+	}
 
--(void)github{
-	[[UIApplication sharedApplication] 
-		openURL:[NSURL URLWithString:@"https://github.com/atar13/Vaon"] 
-		options:@{} 
-	completionHandler:nil];
-}
+	- (void)viewWillAppear:(BOOL)animated {
+		[super viewWillAppear:animated];
+		UIBarButtonItem *respringButton = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:self action:@selector(askBeforeRespring)];
+		self.navigationItem.rightBarButtonItem = respringButton; 
+	}
 
-- (void)viewWillAppear:(BOOL)animated {
-	[super viewWillAppear:animated];
-	UIBarButtonItem *respringButton = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:self action:@selector(respring)];
-	self.navigationItem.rightBarButtonItem = respringButton; 
-}
+	-(void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier{
+
+			[super setPreferenceValue:value specifier:specifier];
+			
+			if([specifier.properties[@"key"] isEqualToString:@"isEnabled"]||
+				[specifier.properties[@"key"] isEqualToString:@"switcherMode"]||
+				[specifier.properties[@"key"] isEqualToString:@"moduleSelection"]||
+				[specifier.properties[@"key"] isEqualToString:@"hideSuggestionBanner"]){
+				UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Respring is required" message:@"To apply this change you must respring your device" preferredStyle:UIAlertControllerStyleAlert];
+				UIAlertAction* respringAction = [UIAlertAction actionWithTitle:@"Respring" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+					[self respring];
+				}];
+				UIAlertAction* laterAction = [UIAlertAction actionWithTitle:@"Later" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action) {}];
+				[alert addAction:respringAction];
+				[alert addAction:laterAction];
+				[self presentViewController:alert animated:YES completion:nil];
+			}
+	}
 
 @end

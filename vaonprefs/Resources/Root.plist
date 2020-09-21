@@ -57,8 +57,6 @@
 			<string>PSListItemsController</string>
 			<key>key</key>
 			<string>moduleSelection</string>
-			<key>id</key>
-			<string>MODULE_SELECTION</string>
 			<key>PostNotification</key>
 			<string>com.atar13.vaonprefs/prefschanged</string>
 			<key>validTitles</key>
@@ -74,7 +72,37 @@
 			<key>default</key>
 			<string>battery</string>
 			<key>defaults</key>
-			<string>com.atar13.vaonprefs</string>			
+			<string>com.atar13.vaonprefs</string>
+		</dict>
+		<dict>
+            <key>cell</key>
+            <string>PSLinkCell</string>
+            <key>isController</key>
+            <true/>
+            <key>overridePrincipalClass</key>
+            <true/>
+            <key>label</key>
+            <string>Battery Configuration</string>
+            <key>detail</key>
+            <string>BatteryPreferencesController</string>
+        </dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Additional Options</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>hideSuggestionBanner</string>
+			<key>label</key>
+			<string>Hide Suggested Apps/Handoff Banner</string>
 		</dict>
 		<dict>
 			<key>cell</key>

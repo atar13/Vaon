@@ -57,7 +57,8 @@
 @end
 
 
-@interface VaonDeviceBatteryCell : UIStackView
+
+@interface VaonDeviceBatteryCell : UIStackView 
     -(instancetype)initWithFrame:(CGRect)arg1 device:(BCBatteryDevice *)device;
     @property (nonatomic, weak) BCBatteryDevice *device;
     @property (nonatomic, strong) NSString *deviceName;
@@ -72,6 +73,7 @@
     @property (nonatomic, strong) UIBezierPath *circleOutlinePath;
     @property (nonatomic, strong) CAShapeLayer *circleOutlineLayer;
     @property (nonatomic, strong) UIImageView *deviceGlyphView;
+    @property (nonatomic, strong) CABasicAnimation *percentageAnimation;
     -(CGFloat)getCellWidth;
     -(void)setCellWidth:(CGFloat)arg1;
     -(void)addPercentageSymbolToLabel;
@@ -79,7 +81,7 @@
     -(void)updateDevicePercentage;
     -(void)updateCircleOutline;
     -(void)updateDevicePercentageLabel;
-    -(void)animateOutlineLayer:(CGFloat)progress;
+    // -(void)animateOutlineLayer:(CGFloat)progress;
     -(void)resetStrokeEnd;
     -(void)removeFromSuperview;
     -(CGFloat)devicePercentageAsProgress;
@@ -89,4 +91,11 @@
     -(void)updateOutlineColor;
     -(void)pulsateOutline:(BOOL)start;
     -(void)updatePercentageColor;
+    -(void)newAnimateOuterLayerToCurrentPercentage;
+    -(void)newAnimateOuterLayerToZero;
+@end
+
+@interface CAAnimationDelegate : NSObject <CAAnimationDelegate>
+    @property (nonatomic) VaonDeviceBatteryCell *cell;
+    -(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag;
 @end

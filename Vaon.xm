@@ -1,16 +1,11 @@
 //TODO: 
 //add customtext option to the top/bottom of vaon view
 //option for a split view of two widgets
-//option to have ipad style switcher : DONE
-//check for landscape mode : DONE
-//add option to remove handoff/suggested apps banner that interferes with vaon : DONE
 //add option for vaon to fly up from the bottom	
 //add option to ovveride landscape hide and override hiding the suggestion banner
 //hide appname/icon from sbappswitchersettings
 //options for custom placement and resizing
 //make social media icons filled and grey/colorful
-//ANIMATE GREEN BATTERY CIRCLES using CGContextAddArc
-//when fading in and out force the battery view to also refresh
 //option to hide percent character
 //change color of outline depending on percentage
 //async functions to update device count, check to see if current device list has changed (if it has load new stack view elements), refresh the outline, refresh label and glyphs
@@ -18,6 +13,7 @@
 //align circle/outline views on the same axis
 //outline doesn't update
 //raise app switcher
+//option to hide app header titles
 /**
 favorite contacts or an option for recents
 device batteries
@@ -35,10 +31,30 @@ weather/AQI view that's similar to battery view
 #import <Vaon.h>
 #import <QuartzCore/QuartzCore.h>
 
+@implementation CAAnimationDelegate 
+
+	-(instancetype)initWithCell:(VaonDeviceBatteryCell *)cell {
+		self = [super init];
+		self.cell = cell;
+		return self;
+	}
+    -(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag {
+		if(flag){
+			[CATransaction begin];
+			[CATransaction setValue:(id)kCFBooleanTrue
+							forKey:kCATransactionDisableActions];
+			self.cell.circleOutlineLayer.strokeEnd = [self.cell devicePercentageAsProgress];
+			[CATransaction commit];
+		}
+	}
+
+@end
+
 @implementation VaonDeviceBatteryCell
 	UIColor *lowPowerModeColor = [UIColor colorWithRed:1 green:0.8 blue:0 alpha:1];
 	UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
 	UIColor *lowBatteryColor = [UIColor redColor];
+
     -(instancetype)initWithFrame:(CGRect)arg1 device:(BCBatteryDevice *)connectedDevice {
         self.device = connectedDevice;
         self.cellWidth = CGFloat(50);
@@ -94,7 +110,7 @@ weather/AQI view that's similar to battery view
         self.circleOutlinePath = [UIBezierPath bezierPathWithArcCenter:CGPointMake(self.circleBackgroundVisualEffectView.contentView.center.x+self.cellWidth/2,self.circleBackgroundVisualEffectView.contentView.center.y+self.cellWidth/2)
             radius:self.cellWidth/2
             startAngle:[self degreesToRadians:(-90)]
-            endAngle:[self degreesToRadians:(3.6*(100)-90)]
+            endAngle:[self degreesToRadians:(270)]
             clockwise:TRUE];
 		// self.circleOutlinePath = [UIBezierPath bezierPathWithOvalInRect:self.circleBackgroundVisualEffectView.contentView.bounds];
 
@@ -118,7 +134,7 @@ weather/AQI view that's similar to battery view
 		[self.deviceGlyphView.heightAnchor constraintEqualToConstant:self.cellWidth*0.6].active = TRUE;
 		
         [self addArrangedSubview:self.deviceGlyphView];
-		[self.circleOutlineLayer setNeedsDisplay];
+		// [self.circleOutlineLayer setNeedsDisplay];
 		[self.circleBackgroundVisualEffectView setNeedsDisplay];
         self.deviceName = connectedDevice.name;
         return self;
@@ -165,9 +181,9 @@ weather/AQI view that's similar to battery view
 		[self.circleOutlineLayer setNeedsDisplay];
 	}
 
-	-(void)animateOutlineLayer:(CGFloat)progress {
-		self.circleOutlineLayer.strokeEnd = progress;
-	}
+	// -(void)animateOutlineLayer:(CGFloat)progress {
+	// 	self.circleOutlineLayer.strokeEnd = progress;
+	// }
 	-(void)resetStrokeEnd {
 		self.circleOutlineLayer.strokeEnd = 0;
 	}
@@ -223,12 +239,28 @@ weather/AQI view that's similar to battery view
 	}
 	-(void)updatePercentageColor {
 		if([self.device isCharging]){
-			self.devicePercentageLabel.textColor = [UIColor greenColor];
+			self.devicePercentageLabel.textColor = normalBatteryColor;
 		}else {
 			self.devicePercentageLabel.textColor = [UIColor labelColor];
 
 		}
 	}
+	-(void)newAnimateOuterLayerToCurrentPercentage{
+		self.percentageAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+		CAAnimationDelegate *delegate = [[CAAnimationDelegate alloc] initWithCell:self];
+		self.percentageAnimation.delegate = delegate;
+		self.percentageAnimation.fromValue = @(0.0);
+		self.percentageAnimation.toValue = @([self devicePercentageAsProgress]);
+		self.percentageAnimation.duration = 0.5;
+		CAMediaTimingFunction *animationTimingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+		self.percentageAnimation.timingFunction = animationTimingFunction;
+		
+		[self.circleOutlineLayer addAnimation:self.percentageAnimation forKey:kCATransition];
+	}
+	-(void)newAnimateOuterLayerToZero {
+		self.circleOutlineLayer.strokeEnd = 0;
+	}
+
 
 @end
 
@@ -240,9 +272,11 @@ HBPreferences *prefs;
 
 //preference variables
 BOOL isEnabled;
-
 NSString *switcherMode = nil;
 NSString *selectedModule = nil;
+BOOL hideSuggestionBanner;
+
+BOOL hideInternal;
 
 UIView *vaonView;
 UIView *vaonGridView;
@@ -263,6 +297,7 @@ BOOL vaonViewIsInitialized = FALSE;
 SBMainSwitcherViewController *mainAppSwitcherVC;
 long long customSwitcherStyle = 2;
 BOOL appSwitcherOpen = FALSE;
+int fadeInCounter = 0;
 
 //batteryView variables
 NSArray *connectedBluetoothDevices;
@@ -317,26 +352,9 @@ void updateBattery(){
 		//check if product identifier/acessory identifier already exists in hstackview
 
 		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
-		// NSMutableArray *subviewsToBeRemoved = [[NSMutableArray alloc] init];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
 
 
-		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
-			// [subview updateDevicePercentageLabel];
-			// [subview animateOutlineLayer:[subview devicePercentageAsProgress]];
-			// [subview updateOutlineColor];
-			// [subview updatePercentageColor];
-			// [subview updateCircleOutline];
-
-
-			HBLogWarn(@"HOPST %@",[subview.device identifier]);
-
-			// if(![connectedBluetoothDevices containsObject:subview.device] || subview.device == nil){
-
-			// 	[subviewsToBeRemoved addObject:subview];
-			// }
-
-		}
 
 		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 
@@ -349,8 +367,15 @@ void updateBattery(){
 				}
 			}
 			if((![batteryHStackView.subviews containsObject:newCell]&&![deviceNames containsObject:device.name])&&![cellDevices containsObject:device]&&batteryHStackView.subviews.count<6){
-				[subviewsToBeAdded addObject:newCell];
-				[deviceNames addObject:newCell.deviceName];
+				if(![device isInternal]){
+					[subviewsToBeAdded addObject:newCell];
+					[deviceNames addObject:newCell.deviceName];
+				}else{
+					if(!hideInternal){
+						[subviewsToBeAdded addObject:newCell];
+						[deviceNames addObject:newCell.deviceName];
+					}
+				}
 			}
 		}
 
@@ -364,26 +389,13 @@ void updateBattery(){
 
 			}
 			completion:^(BOOL finished) {
+				[subview newAnimateOuterLayerToCurrentPercentage];
 				[subviewsToBeAdded removeObject:subview];
 			}];	
 		}
-		// for(VaonDeviceBatteryCell *subview in subviewsToBeRemoved){
-		// 	//fade out subview and on completion remove it from arrangedSubview
 
-		// 	subview.alpha = 1;
-		// 	[UIView animateWithDuration:0.3 animations:^ {
-		// 		subview.alpha = 0;
-		// 	}
-		// 	completion:^(BOOL finished) {
-		// 			[batteryHStackView removeArrangedSubview:subview];
-		// 			[deviceNames removeObject:subview.deviceName];
-		// 			[subviewsToBeRemoved removeObject:subview];
-
-		// 	}];	
-		// }
 		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
 					// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
-			HBLogWarn(@"necking %@ asdkfa;dlkf %i", subview.device, [connectedBluetoothDevices containsObject:subview.device]);
 			if((![connectedBluetoothDevices containsObject:subview.device] && ![subview.device isConnected]) || subview.device == nil ){
 				subview.alpha = 1;
 				[UIView animateWithDuration:0.3 animations:^ {
@@ -396,49 +408,49 @@ void updateBattery(){
 				}];	
 			}
 			[subview updateDevicePercentageLabel];
-			[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
+			// [subview animateOutlineLayer:[subview devicePercentageAsProgress]];
 			[subview updateOutlineColor];
 			[subview updatePercentageColor];
-			[subview updateCircleOutline];
+			// [subview updateCircleOutline];
 		}
+
 	}); 
 }
 
 
 
 void fadeViewIn(UIView *view, CGFloat duration){
-
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 1;
 	} 	
 	completion:^(BOOL finished) {
 		if([selectedModule isEqual:@"battery"]){
 			updateBattery();
+			if(fadeInCounter==0){
 
-			// for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){		
-			// 	[subview animateOutlineLayer:[subview devicePercentageAsProgress]];
-
-			// 	// dispatch_async(dispatch_get_main_queue(), ^{
-			// 	// 	[subview pulsateOutline:TRUE];
-			// 	// });
-			// }	
+			for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
+				if(!(subview.circleOutlineLayer.strokeEnd==[subview devicePercentageAsProgress])&&subview.circleOutlineLayer.strokeEnd==0){
+						[subview newAnimateOuterLayerToCurrentPercentage];
+					}
+				}
+				fadeInCounter++;
+			}
 		}
-
 	}];	
-
 }
 
 void fadeViewOut(UIView *view, CGFloat duration){
-	
+	for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
+				[subview newAnimateOuterLayerToZero];
+	}	
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 0;
 	}
 	completion:^(BOOL finished) {
+		fadeInCounter = 0;
 		if([selectedModule isEqual:@"battery"]){
-			for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
-				[subview resetStrokeEnd];
-				// [subview pulsateOutline:FALSE];
-			}	
+
+
 		}
 	}];	
 }
@@ -477,7 +489,6 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
  -(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
 	 %orig;
-	//  HBLogWarn(@"REMOVED DEVICE");
 	updateBattery();
  }
 
@@ -502,6 +513,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 				if([selectedModule isEqual:@"battery"]){	
 					initBatteryView(vaonView);
 				}
+
 				[self addSubview:vaonView];
 
 				vaonView.translatesAutoresizingMaskIntoConstraints = false;
@@ -512,42 +524,16 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 
 				vaonViewIsInitialized = TRUE;
-			}
-			//fades in the non-grid view when the app switcher is shown
-			if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
-			// 	[UIView animateWithDuration:0.4 animations:^ {
-			// 		vaonView.alpha = 1;
-			// 	}];
-				fadeViewIn(vaonView, 0.3);
-			}
+				if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
+					fadeViewIn(vaonView, 0.3);
+
+				}
+			}	
 		}
 		
 	}
 %end
 
-// %hook SBSwitcherAppSuggestionContentViewController
-// 	-(void)viewDidLoad {
-// 		CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
-// 		if(!vaonViewIsInitialized&&!(customSwitcherStyle==2)){
-
-// 			vaonView = [[UIView alloc] init];
-
-// 			initBaseVaonView(vaonView);
-
-// 			initBatteryView(vaonView);
-// 			[self.view addSubview:vaonView];
-
-// 			vaonView.translatesAutoresizingMaskIntoConstraints = false;
-// 			[vaonView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-23].active = TRUE;
-// 			[vaonView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = TRUE;
-// 			[vaonView.widthAnchor constraintEqualToConstant:dockWidth].active = TRUE;
-// 			[vaonView.heightAnchor constraintEqualToConstant:(0.12*mainScreen)].active = TRUE;
-
-
-// 			vaonViewIsInitialized = TRUE;
-// 		}
-// 	}
-// %end
 
 %hook SBMainSwitcherViewController
 
@@ -603,13 +589,23 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			NSString *switcherTransitionRequest = [[NSString alloc] initWithFormat:@"%@", arg2];
 			NSUInteger indexAfterAppLayout =  [switcherTransitionRequest rangeOfString: @"appLayout: "].location;
 			NSString *appLayoutString = [switcherTransitionRequest substringFromIndex:indexAfterAppLayout];
+			// FinalFluidSwitcherGestureAction
+			NSString *eventLabel = [[NSString alloc] initWithFormat:@"%@", arg3];
 
+			// if(!(customSwitcherStyle==2)){
 			if(![appLayoutString containsString:@"appLayout: 0x0;"]){		
 				// [UIView animateWithDuration:0.2 animations:^ {
 				// 	vaonView.alpha = 0;
 				// }];
 				fadeViewOut(vaonView, 0.2);
 			}
+			if([eventLabel isEqual:@"FinalFluidSwitcherGestureAction"]&&mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
+
+				fadeViewIn(vaonView, 0.3);
+
+
+			}
+			// }
 		}
 		%orig;
 	}
@@ -624,16 +620,11 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			appSwitcherOpen = [self isAnySwitcherVisible];
 			if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
 				if(!appSwitcherOpen){
-					// [UIView animateWithDuration:0.3 animations:^ {
-					// 	vaonGridView.alpha = 0;
-					// }];	
 					fadeViewOut(vaonGridView, 0.3);
-
 				}else{
-					// [UIView animateWithDuration:0.3 animations:^ {
-					// 	vaonGridView.alpha = 1;
-					// }];	
-					fadeViewIn(vaonGridView, 0.3);
+					if(!(vaonGridView.alpha==1)){
+						fadeViewIn(vaonGridView, 0.3);
+					}
 				}
 			}
 		}
@@ -641,7 +632,8 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	}
 
 
-%end
+
+	%end
 
 
 %hook SBAppSwitcherSettings
@@ -666,7 +658,9 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 	-(void)didMoveToWindow {
 		%orig;
-		self.hidden = TRUE;
+		if(hideSuggestionBanner){
+			self.hidden = TRUE;
+		}
 	}
 %end
 
@@ -675,10 +669,13 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 void updateSettings(){
 	[prefs registerBool:&isEnabled default:TRUE forKey:@"isEnabled"];
-
 	[prefs registerObject:&switcherMode default:@"stock" forKey:@"switcherMode"];
-
 	[prefs registerObject:&selectedModule default:@"battery" forKey:@"moduleSelection"];
+	[prefs registerBool:&hideSuggestionBanner default:TRUE forKey:@"hideSuggestionBanner"];
+
+
+	[prefs registerBool:&hideInternal default:FALSE forKey:@"hideInternal"];
+
 }
 
 %ctor {
