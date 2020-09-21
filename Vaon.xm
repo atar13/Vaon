@@ -31,6 +31,44 @@ weather/AQI view that's similar to battery view
 #import <Vaon.h>
 #import <QuartzCore/QuartzCore.h>
 
+
+HBPreferences *prefs;
+
+//preference variables
+BOOL isEnabled;
+NSString *switcherMode = nil;
+NSString *selectedModule = nil;
+BOOL hideSuggestionBanner;
+
+BOOL hideInternal;
+BOOL hidePercent;
+
+UIView *vaonView;
+UIView *vaonGridView;
+
+UIStackView *batteryHStackView;
+
+UIColor *vaonViewBackgroundColor;
+UIVisualEffectView *vaonBlurView;
+UIBlurEffect *blurEffect;
+UILabel *titleLabel;
+
+int vaonViewCornerRadius = 17;
+
+CGFloat dockWidth;
+BOOL vaonViewIsInitialized = FALSE;
+
+// long long sbAppSwitcherOrientation;
+SBMainSwitcherViewController *mainAppSwitcherVC;
+long long customSwitcherStyle = 2;
+BOOL appSwitcherOpen = FALSE;
+int fadeInCounter = 0;
+
+//batteryView variables
+NSArray *connectedBluetoothDevices;
+NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
+
+
 @implementation CAAnimationDelegate 
 
 	-(instancetype)initWithCell:(VaonDeviceBatteryCell *)cell {
@@ -154,7 +192,9 @@ weather/AQI view that's similar to battery view
     }
 
     -(void)addPercentageSymbolToLabel {
-        [self.devicePercentageString appendString:@"%"];
+		if(!hidePercent){
+        	[self.devicePercentageString appendString:@"%"];
+		}
     }
     -(long long)getDevicePercentage {
         return [self.device percentCharge];
@@ -268,40 +308,7 @@ weather/AQI view that's similar to battery view
 
 
 
-HBPreferences *prefs;
 
-//preference variables
-BOOL isEnabled;
-NSString *switcherMode = nil;
-NSString *selectedModule = nil;
-BOOL hideSuggestionBanner;
-
-BOOL hideInternal;
-
-UIView *vaonView;
-UIView *vaonGridView;
-
-UIStackView *batteryHStackView;
-
-UIColor *vaonViewBackgroundColor;
-UIVisualEffectView *vaonBlurView;
-UIBlurEffect *blurEffect;
-UILabel *titleLabel;
-
-int vaonViewCornerRadius = 17;
-
-CGFloat dockWidth;
-BOOL vaonViewIsInitialized = FALSE;
-
-// long long sbAppSwitcherOrientation;
-SBMainSwitcherViewController *mainAppSwitcherVC;
-long long customSwitcherStyle = 2;
-BOOL appSwitcherOpen = FALSE;
-int fadeInCounter = 0;
-
-//batteryView variables
-NSArray *connectedBluetoothDevices;
-NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
 
 void initBatteryView(UIView *view){
 	batteryHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
@@ -675,6 +682,7 @@ void updateSettings(){
 
 
 	[prefs registerBool:&hideInternal default:FALSE forKey:@"hideInternal"];
+	[prefs registerBool:&hidePercent default:FALSE forKey:@"hidePercent"];
 
 }
 

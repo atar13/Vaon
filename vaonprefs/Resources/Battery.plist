@@ -18,6 +18,18 @@
             <key>PostNotifications</key>
             <string>com.atar13.vaonprefs/ReloadPrefs</string>
 		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>hidePercent</string>
+			<key>label</key>
+			<string>Hide Percent(%) Symbol</string>
+		</dict>
 	</array>
 	<key>title</key>
 	<string>Vaon</string>
