@@ -63,6 +63,7 @@ SBMainSwitcherViewController *mainAppSwitcherVC;
 long long customSwitcherStyle = 2;
 BOOL appSwitcherOpen = FALSE;
 int fadeInCounter = 0;
+BOOL doneFadingIn = FALSE;
 
 //batteryView variables
 NSArray *connectedBluetoothDevices;
@@ -291,7 +292,7 @@ NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
 		self.percentageAnimation.delegate = delegate;
 		self.percentageAnimation.fromValue = @(0.0);
 		self.percentageAnimation.toValue = @([self devicePercentageAsProgress]);
-		self.percentageAnimation.duration = 0.5;
+		self.percentageAnimation.duration = 0.3;
 		CAMediaTimingFunction *animationTimingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
 		self.percentageAnimation.timingFunction = animationTimingFunction;
 		
@@ -427,6 +428,7 @@ void updateBattery(){
 
 
 void fadeViewIn(UIView *view, CGFloat duration){
+	if(doneFadingIn==FALSE){
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 1;
 	} 	
@@ -443,7 +445,9 @@ void fadeViewIn(UIView *view, CGFloat duration){
 				fadeInCounter++;
 			}
 		}
+		doneFadingIn = TRUE;
 	}];	
+	}
 }
 
 void fadeViewOut(UIView *view, CGFloat duration){
@@ -459,6 +463,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 
 		}
+		doneFadingIn = FALSE;
 	}];	
 }
 
@@ -627,6 +632,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			appSwitcherOpen = [self isAnySwitcherVisible];
 			if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
 				if(!appSwitcherOpen){
+				// if(doneFadingIn){
 					fadeViewOut(vaonGridView, 0.3);
 				}else{
 					if(!(vaonGridView.alpha==1)){

@@ -2,9 +2,18 @@
 
 //maybe check if the user is going back to the previous value a speciefier was at before prompting the alert to repsring
 //make a new HBPrefs
+HBPreferences *prefs;
+NSArray *rootPreferenceKeys;
+NSArray *batteryPreferenceKeys;
 
 @implementation BatteryPreferencesController
-	- (NSArray *)specifiers {
+
+	// -(id)init {
+	// 	prefs = [[HBPreferences alloc] initWithIdentifier:@"com.atar13.vaonprefs"];
+	// 	return [super init];
+	// }
+
+	-(NSArray *)specifiers {
 		if (!_specifiers) {
 			_specifiers = [self loadSpecifiersFromPlistName:@"Battery" target:self];
 		}
@@ -37,10 +46,7 @@
         UIBarButtonItem *respringButton = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:self action:@selector(askBeforeRespring)];
         self.navigationItem.rightBarButtonItem = respringButton; 
     }
-
-	-(void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier{
-		[super setPreferenceValue:value specifier:specifier];
-		if([specifier.properties[@"key"] isEqualToString:@"hideInternal"]){
+	-(void)prefsChangeAlert {
 			UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Respring is required" message:@"To apply this change you must respring your device" preferredStyle:UIAlertControllerStyleAlert];
 			UIAlertAction* respringAction = [UIAlertAction actionWithTitle:@"Respring" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
 				[self respring];
@@ -49,6 +55,14 @@
 			[alert addAction:respringAction];
 			[alert addAction:laterAction];
 			[self presentViewController:alert animated:YES completion:nil];
+	}
+
+	-(void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier{
+		[super setPreferenceValue:value specifier:specifier];
+		if(((BOOL)specifier.properties[@"value"]==[prefs boolForKey:specifier.properties[@"key"]])){
+			if([batteryPreferenceKeys containsObject:specifier.properties[@"key"]]){
+				[self prefsChangeAlert];
+			}
 		}
 	}
 
@@ -59,9 +73,14 @@
 
 @implementation VaonRootListController
 	//-(id)readPreferenceValue:(PSSpecifier*)specifier; use this to get the current modele selected and make a method that returns it and passes it into the pslinkcell in root.plist
+	-(id)init {
+		prefs = [[HBPreferences alloc] initWithIdentifier:@"com.atar13.vaonprefs"];
+		rootPreferenceKeys = @[@"isEnabled", @"switcherMode", @"moduleSelection", @"hideSuggestionBanner"];
+		batteryPreferenceKeys = @[@"hideInternal", @"hidePercent"];
+		return [super init];
+	}
 
-
-	- (NSArray *)specifiers {
+	-(NSArray *)specifiers {
 		if (!_specifiers) {
 			_specifiers = [self loadSpecifiersFromPlistName:@"Root" target:self];
 		}
@@ -120,23 +139,31 @@
 		self.navigationItem.rightBarButtonItem = respringButton; 
 	}
 
-	-(void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier{
-
-			[super setPreferenceValue:value specifier:specifier];
-			
-			if([specifier.properties[@"key"] isEqualToString:@"isEnabled"]||
-				[specifier.properties[@"key"] isEqualToString:@"switcherMode"]||
-				[specifier.properties[@"key"] isEqualToString:@"moduleSelection"]||
-				[specifier.properties[@"key"] isEqualToString:@"hideSuggestionBanner"]){
-				UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Respring is required" message:@"To apply this change you must respring your device" preferredStyle:UIAlertControllerStyleAlert];
-				UIAlertAction* respringAction = [UIAlertAction actionWithTitle:@"Respring" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
-					[self respring];
-				}];
-				UIAlertAction* laterAction = [UIAlertAction actionWithTitle:@"Later" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action) {}];
-				[alert addAction:respringAction];
-				[alert addAction:laterAction];
-				[self presentViewController:alert animated:YES completion:nil];
-			}
+	-(void)prefsChangeAlert {
+			UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Respring is required" message:@"To apply this change you must respring your device" preferredStyle:UIAlertControllerStyleAlert];
+			UIAlertAction* respringAction = [UIAlertAction actionWithTitle:@"Respring" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+				[self respring];
+			}];
+			UIAlertAction* laterAction = [UIAlertAction actionWithTitle:@"Later" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action) {}];
+			[alert addAction:respringAction];
+			[alert addAction:laterAction];
+			[self presentViewController:alert animated:YES completion:nil];
 	}
+	-(void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier{
+		[super setPreferenceValue:value specifier:specifier];
+		if([rootPreferenceKeys containsObject:specifier.properties[@"key"]]){
+
+			if([specifier.properties[@"cell"] isEqual:@"PSSwitchCell"]){
+				if(!(BOOL)specifier.properties[@"value"]==[prefs boolForKey:specifier.properties[@"key"]]){
+						[self prefsChangeAlert];
+				}
+			}
+			else {
+				[self prefsChangeAlert];
+			}
+		}
+	}
+
+
 
 @end
