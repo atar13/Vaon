@@ -89,13 +89,41 @@
     -(BOOL)isLowPowerModeOn;
     -(BOOL)isBatteryLow;
     -(void)updateOutlineColor;
-    -(void)pulsateOutline:(BOOL)start;
+    -(void)pulsateOutline;
     -(void)updatePercentageColor;
     -(void)newAnimateOuterLayerToCurrentPercentage;
     -(void)newAnimateOuterLayerToZero;
 @end
 
-@interface CAAnimationDelegate : NSObject <CAAnimationDelegate>
-    @property (nonatomic) VaonDeviceBatteryCell *cell;
-    -(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag;
+@interface StrokeEndAnimationDelegate : NSObject <CAAnimationDelegate>
+-(instancetype)initWithCell:(VaonDeviceBatteryCell *)cell;
+@property (nonatomic) VaonDeviceBatteryCell *cell;
+-(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag;
+@end
+
+@interface PulsateColorAnimationDelegate :NSObject <CAAnimationDelegate>
+-(instancetype)initWithCell:(VaonDeviceBatteryCell *)cell nextAnimation:(CAAnimation *)nextAnimation;
+@property (nonatomic) VaonDeviceBatteryCell *cell;
+@property (nonatomic, strong) CAAnimation *nextAnimation;
+-(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag;
+@end
+
+@interface CNFavorites : NSObject
++(id)sharedInstance;
+@property (nonatomic,readonly) NSArray * entries; 
+@end
+
+@interface CNFavoriteEntry : NSObject
+@end
+
+@interface CNContact : NSObject
+@end
+
+@interface VaonFavoriteContactsCell : UIStackView
+-(instancetype)initWithFrame:(CGRect)arg1 favoriteEntry:(CNFavoriteEntry *)favoriteEntry;
+@property (nonatomic, strong) CNFavoriteEntry *favoriteEntry;
+@property (nonatomic, strong) CNContact *contact;
+@property (nonatomic, strong) NSString *originalName;
+@property (nonatomic, strong) NSString *value;
+// @property (nonatomic, strong) 
 @end

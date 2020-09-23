@@ -30,8 +30,82 @@
 			<key>label</key>
 			<string>Hide Percent(%) Symbol</string>
 		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>pulsateChargingOutline</string>
+			<key>label</key>
+			<string>Pulsate Outline of Charging Devices (Experimental)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Custom Sizing</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customBatteryCellSizeEnabled</string>
+			<key>label</key>
+			<string>Enable Custom Battery Cell Size</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>50</integer>
+			<key>min</key>
+			<integer>10</integer>
+			<key>max</key>
+			<integer>100</integer>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customBatteryCellSize</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customPercentageFontSizeEnabled</string>
+			<key>label</key>
+			<string>Enable Custom Percentage Font Size</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>12</integer>
+			<key>min</key>
+			<integer>5</integer>
+			<key>max</key>
+			<integer>50</integer>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customPercentageFontSize</string>
+		</dict>
 	</array>
 	<key>title</key>
-	<string>Vaon</string>
+	<string>Battery</string>
 </dict>
 </plist>

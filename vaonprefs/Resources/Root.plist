@@ -62,11 +62,13 @@
 			<key>validTitles</key>
 			<array>
 				<string>Battery</string>
+				<string>Favorite Contacts</string>
 				<string>None</string>
 			</array>
 			<key>validValues</key>
 			<array>
 				<string>battery</string>
+				<string>favoriteContacts</string>
 				<string>none</string>
 			</array>
 			<key>default</key>
@@ -103,6 +105,68 @@
 			<string>hideSuggestionBanner</string>
 			<key>label</key>
 			<string>Hide Suggested Apps/Handoff Banner</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Custom Sizing</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customHeightEnabled</string>
+			<key>label</key>
+			<string>Enable Custom Height Size</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>113</integer>
+			<key>min</key>
+			<integer>25</integer>
+			<key>max</key>
+			<integer>500</integer>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customHeight</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customWidthEnabled</string>
+			<key>label</key>
+			<string>Enable Custom Width Size</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>400</integer>
+			<key>min</key>
+			<integer>100</integer>
+			<key>max</key>
+			<integer>700</integer>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customWidth</string>
 		</dict>
 		<dict>
 			<key>cell</key>
