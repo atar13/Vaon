@@ -15,13 +15,11 @@
 @interface SBFluidSwitcherViewController : UIViewController
 @end
 
-@interface SBFluidSwitcherContentView : UIView
-@end
-
 @interface SBAppSwitcherSettings
 @property (assign) double spacingBetweenTrailingEdgeAndLabels;
 @property (assign) double centerPoint;
 @property (assign) long long switcherStyle;
+-(long long)switcherStyle;
 @end
 
 @interface SBGridSwitcherViewController : SBFluidSwitcherViewController
@@ -113,17 +111,55 @@
 @property (nonatomic,readonly) NSArray * entries; 
 @end
 
-@interface CNFavoriteEntry : NSObject
+@interface CNContact : NSObject
+-(NSData *)imageData;
 @end
 
-@interface CNContact : NSObject
+@interface CNFavoriteEntry : NSObject
+-(NSString *)originalName;
+-(CNContact *)contact;
 @end
 
 @interface VaonFavoriteContactsCell : UIStackView
 -(instancetype)initWithFrame:(CGRect)arg1 favoriteEntry:(CNFavoriteEntry *)favoriteEntry;
 @property (nonatomic, strong) CNFavoriteEntry *favoriteEntry;
 @property (nonatomic, strong) CNContact *contact;
-@property (nonatomic, strong) NSString *originalName;
-@property (nonatomic, strong) NSString *value;
-// @property (nonatomic, strong) 
+// @property (nonatomic, strong) NSString *originalName;
+// @property (nonatomic, strong) NSString *value;
+@property (nonatomic, strong) UILabel *contactNameLabel;
+@property (nonatomic, strong) UIImageView *contactImageView;
+@end
+
+@interface SBFluidSwitcherContentView : UIView
+
+@end
+
+@interface SBFTouchPassThroughView : UIView
+@end
+
+@interface SBAppSwitcherPageView : UIView
+@end
+
+@interface SBFluidSwitcherItemContainer : SBFTouchPassThroughView 
+@end
+
+@interface SBReusableSnapshotItemContainer : SBFluidSwitcherItemContainer
+@end
+
+@interface SBFluidSwitcherItemContainerHeaderView : UIView
+@end
+
+@interface SBSwitcherWallpaperPageContentView : UIView
+@end
+
+@interface SBAppSwitcherReusableSnapshotView : SBSwitcherWallpaperPageContentView
+@end
+
+@interface SBFluidSwitcherTouchPassThroughScrollView : UIScrollView
+@end
+
+@interface BSUIScrollView : UIScrollView
+@end
+
+@interface SBAppSwitcherScrollView : BSUIScrollView
 @end

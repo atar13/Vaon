@@ -56,6 +56,8 @@ UIView *vaonView;
 UIView *vaonGridView;
 
 UIStackView *batteryHStackView;
+// UIScrollView *favoriteContactsScrollView;
+UIStackView *favoriteContactsHStackView;
 
 UIColor *vaonViewBackgroundColor;
 UIVisualEffectView *vaonBlurView;
@@ -69,7 +71,8 @@ BOOL vaonViewIsInitialized = FALSE;
 
 // long long sbAppSwitcherOrientation;
 SBMainSwitcherViewController *mainAppSwitcherVC;
-long long customSwitcherStyle = 2;
+long long customSwitcherStyle;
+long long currentSwitcherStyle;
 BOOL appSwitcherOpen = FALSE;
 int fadeInCounter = 0;
 BOOL doneFadingIn = FALSE;
@@ -357,7 +360,37 @@ NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
 @implementation VaonFavoriteContactsCell
 
 -(instancetype)initWithFrame:(CGRect)arg1 favoriteEntry:(CNFavoriteEntry *)favoriteEntry {
+	self = [super initWithFrame:arg1];
+	self.axis = UILayoutConstraintAxisVertical;
+	self.alignment = UIStackViewAlignmentCenter;
+	self.distribution = UIStackViewDistributionEqualSpacing;
+	self.spacing = 10;
+	self.clipsToBounds = TRUE;
+	self.backgroundColor = [UIColor clearColor];
+	self.translatesAutoresizingMaskIntoConstraints = FALSE;
+
 	self.favoriteEntry = favoriteEntry;
+	self.contact = favoriteEntry.contact;
+
+
+	self.contactNameLabel = [[UILabel alloc] init];
+	self.contactNameLabel.text = [self.favoriteEntry originalName];
+	self.contactNameLabel.adjustsFontSizeToFitWidth = TRUE;
+	self.contactNameLabel.frame = self.bounds;
+	self.contactNameLabel.clipsToBounds = TRUE;
+
+	[self addArrangedSubview:self.contactNameLabel];
+
+	NSData *imageData = self.contact.imageData;
+
+	UIImage *contactImage = [UIImage imageWithData:imageData];
+	self.contactImageView = [[UIImageView alloc] initWithImage:contactImage];
+	self.contactImageView.contentMode = UIViewContentModeScaleAspectFit;
+	self.contactImageView.frame = self.bounds;
+	self.contactImageView.clipsToBounds = TRUE;
+
+	[self addArrangedSubview:self.contactImageView];
+
 	return self;
 }
 
@@ -371,8 +404,6 @@ NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
 
 
 void initBatteryView(UIView *view){
-	NSArray *contactFavorites = [[%c(CNFavorites) sharedInstance] entries];
-	HBLogWarn(@"%@", contactFavorites);
 
 	batteryHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
 	batteryHStackView.axis = UILayoutConstraintAxisHorizontal;
@@ -386,7 +417,7 @@ void initBatteryView(UIView *view){
 
 	[view addSubview:batteryHStackView];
 
-	if(!(customSwitcherStyle==2)){
+	if(!(currentSwitcherStyle==2)){
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
 			VaonDeviceBatteryCell *cell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
 			[batteryHStackView addArrangedSubview:cell]; 
@@ -400,8 +431,31 @@ void initBatteryView(UIView *view){
 
 }
 
-void initFavoriteContactsView(UIView *view) {
 
+
+void initFavoriteContactsView(UIView *view) {
+	// favoriteContactsScrollView
+
+	favoriteContactsHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
+	favoriteContactsHStackView.axis = UILayoutConstraintAxisHorizontal;
+	favoriteContactsHStackView.alignment = UIStackViewAlignmentCenter;
+	favoriteContactsHStackView.distribution = UIStackViewDistributionEqualCentering;
+	favoriteContactsHStackView.spacing = 80;
+	favoriteContactsHStackView.clipsToBounds = TRUE;
+
+	[view addSubview:favoriteContactsHStackView];
+
+	NSArray *contactFavorites = [[%c(CNFavorites) sharedInstance] entries];
+
+	for(CNFavoriteEntry *entry in contactFavorites){
+		VaonFavoriteContactsCell *cell = [[VaonFavoriteContactsCell alloc] initWithFrame:favoriteContactsHStackView.bounds favoriteEntry:entry];
+		[favoriteContactsHStackView addArrangedSubview:cell];
+	}
+
+	favoriteContactsHStackView.translatesAutoresizingMaskIntoConstraints = false;
+
+	[favoriteContactsHStackView.centerXAnchor constraintEqualToAnchor:view.centerXAnchor].active = TRUE;
+	[favoriteContactsHStackView.centerYAnchor constraintEqualToAnchor:view.centerYAnchor].active = TRUE;
 }
 
 
@@ -440,7 +494,7 @@ void updateBattery(){
 					[cellDevices addObject:cell.device];
 				}
 			}
-			if((![batteryHStackView.subviews containsObject:newCell]&&![deviceNames containsObject:device.name])&&![cellDevices containsObject:device]&&batteryHStackView.subviews.count<6){
+			if((![batteryHStackView.subviews containsObject:newCell]&&![deviceNames containsObject:device.name])&&batteryHStackView.subviews.count<6){
 				if(![device isInternal]){
 					[subviewsToBeAdded addObject:newCell];
 					[deviceNames addObject:newCell.deviceName];
@@ -504,7 +558,7 @@ void fadeViewIn(UIView *view, CGFloat duration){
 			if(fadeInCounter==0){
 
 			for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
-				if(!(subview.circleOutlineLayer.strokeEnd==[subview devicePercentageAsProgress])&&subview.circleOutlineLayer.strokeEnd==0){
+				if(finished){
 						[subview newAnimateOuterLayerToCurrentPercentage];
 					}
 				}
@@ -564,11 +618,14 @@ void fadeViewOut(UIView *view, CGFloat duration){
  %end
 
  %hook BCBatteryDeviceController
-
- -(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
-	 %orig;
-	updateBattery();
- }
+	-(void)addDeviceChangeHandler:(id)arg1 withIdentifier:(id)arg2 {
+		%orig;
+		updateBattery();
+	}
+	-(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
+		%orig;
+		updateBattery();
+	}
 
  %end
 
@@ -582,7 +639,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		%orig;
 		if(![selectedModule isEqual:@"none"]){
 			CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
-			if(!vaonViewIsInitialized&&!(customSwitcherStyle==2)){
+			if(!vaonViewIsInitialized&&!(currentSwitcherStyle==2)){
 
 				vaonView = [[UIView alloc] init];
 
@@ -590,6 +647,8 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 				if([selectedModule isEqual:@"battery"]){	
 					initBatteryView(vaonView);
+				}else if([selectedModule isEqual:@"favoriteContacts"]){
+					initFavoriteContactsView(vaonView);
 				}
 
 				[self addSubview:vaonView];
@@ -632,7 +691,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		if(![selectedModule isEqual:@"none"]){	
 
 			//initializes vaon for grid mode 
-			if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
+			if(currentSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
 				if(!vaonViewIsInitialized){
 					vaonGridView = [[UIView alloc] init];
 
@@ -640,6 +699,8 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 					if([selectedModule isEqual:@"battery"]){	
 						initBatteryView(vaonGridView);
+					}else if([selectedModule isEqual:@"favoriteContacts"]){
+						initFavoriteContactsView(vaonGridView);
 					}
 					
 					[self.view addSubview:vaonGridView];
@@ -684,7 +745,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			// FinalFluidSwitcherGestureAction
 			NSString *eventLabel = [[NSString alloc] initWithFormat:@"%@", arg3];
 
-			// if(!(customSwitcherStyle==2)){
+			// if(!(currentSwitcherStyle==2)){
 			if(![appLayoutString containsString:@"appLayout: 0x0;"]){		
 				// [UIView animateWithDuration:0.2 animations:^ {
 				// 	vaonView.alpha = 0;
@@ -710,7 +771,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		%orig;
 		if(![selectedModule isEqual:@"none"]){
 			appSwitcherOpen = [self isAnySwitcherVisible];
-			if(customSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
+			if(currentSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
 				if(!appSwitcherOpen){
 				// if(doneFadingIn){
 					fadeViewOut(vaonGridView, 0.3);
@@ -733,7 +794,12 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 	//Enable and customize grid mode 
 	-(void)setSwitcherStyle: (long long)arg1 {
-		%orig(customSwitcherStyle);
+		if(customSwitcherStyle==2){
+			%orig(2);
+		}else {
+			%orig;
+		}
+		currentSwitcherStyle = self.switcherStyle;
 	}
 
 	- (void) setGridSwitcherPageScale: (double)arg1 {
@@ -757,7 +823,87 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	}
 %end
 
+%hook SBFluidSwitcherItemContainerHeaderView
 
+
+	-(void)addSubview {
+		%orig;
+		// self.hidden = TRUE;
+	}
+%end
+
+%hook SBFluidSwitcherItemContainer
+
+	- (void)setTitleOpacity:(double)arg1 {
+		%orig(0);
+	}
+
+	// -(id)initWithFrame:(CGRect)arg1 {
+	// 	return %orig(CGRectMake(self.frame.origin.x, self.frame.origin.y-200, self.frame.size.width, self.frame.size.height));
+	// }
+	// -(void)setContentView:(UIView*)arg1 {
+	// 	UIView *view = arg1;
+	// 	view.frame = CGRectMake(arg1.frame.origin.x, arg1.frame.origin.y-200, arg1.frame.size.width, arg1.frame.size.height);
+	// 	%orig(view);
+	// }
+	
+	// -(CGRect)_frameForPageView {
+	// 	return CGRectMake(self.frame.origin.x, self.frame.origin.y-200, self.frame.size.width, self.frame.size.height);
+	// 	// return CGRectMake(self._pageView.frame.origin.x, pageView.frame.origin.y-200, pageView.frame.size.width, pageView.frame.size.height);
+	// }
+	// -(CGRect)_frameForScrollView {
+	// 	return CGRectMake(self.frame.origin.x, self.frame.origin.y-200, self.frame.size.width, self.frame.size.height);
+
+	// }
+
+%end
+
+// %hook SBHomeGestureSettings
+
+// 	- (void)setMinimumYDistanceForHomeOrAppSwitcher:(double)arg1 {
+// 	    %orig(0);
+// }
+
+// %end
+
+%hook SBFluidSwitcherAnimationSettings
+	-(void)setEmptySwitcherDismissDelay:(double)arg1 {
+		%orig(2);
+	}
+%end
+
+
+
+// %hook SBAppSwitcherPageView
+// 	// -(void)setFrame:(CGRect)frame {
+// 	// 	%orig(CGRectMake(frame.origin.x, frame.origin.y-200, frame.size.width, frame.size.height));
+
+// 	// }
+// 	-(void)didMoveToWindow {
+// 		%orig;
+// 		// self.alpha = 0.5;
+// 		// self.hidden = TRUE;
+// 	}
+// %end
+
+// %hook SBGridSwitcherViewController
+
+// 	-(void)viewDidLoad {
+// 		%orig;
+// 		self.viewIfLoaded.frame = CGRectMake(self.view.frame.origin.x, self.view.frame.origin.y-200, self.view.frame.size.width, self.view.frame.size.height);
+// 	}
+// %end
+
+
+// %hook SBOrientationTransformWrapperView
+// -(void)setFrame:(CGRect)arg1 {
+// 		%orig(CGRectMake(arg1.origin.x, arg1.origin.y-500, arg1.size.width, arg1.size.height));
+// 	}
+// 	// -(void)setFrameOrigin:(CGPoint)arg1{
+// 	// 	%orig(CGPointMake(arg1.x, arg1.y-200));
+// 	// }
+// 	// -(void)_constantsForVerticalAutoresizingConstraints:(double*)arg1 :(double*)arg2
+// %end
 
 
 void updateSettings(){
@@ -783,6 +929,12 @@ void updateSettings(){
 	prefs = [[HBPreferences alloc] initWithIdentifier:@"com.atar13.vaonprefs"];
 	updateSettings();
 
+	if([switcherMode isEqual:@"grid"]){
+		customSwitcherStyle = 2;
+	}else{
+		currentSwitcherStyle = 0;
+	}
+
 	if(isEnabled){
 		%init;
 		if([selectedModule isEqual:@"battery"]){
@@ -790,10 +942,6 @@ void updateSettings(){
 		}
 	}
 
-	if([switcherMode isEqual:@"grid"]){
-		customSwitcherStyle = 2;
-	}else{
-		customSwitcherStyle = 1;
-	}
+
 
 }
