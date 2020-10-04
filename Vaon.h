@@ -41,8 +41,11 @@
 - (BOOL)isInternal;
 - (NSString*)identifier;
 - (NSString*)name;
-- (NSString *)identifier;
 - (BOOL)isConnected;
+-(NSString *)accessoryIdentifier;
+-(NSString *)groupName;
+-(unsigned long long)parts;
+-(BOOL)isFake;
 @end
 
 
@@ -59,6 +62,8 @@
 @interface VaonDeviceBatteryCell : UIStackView 
     -(instancetype)initWithFrame:(CGRect)arg1 device:(BCBatteryDevice *)device;
     @property (nonatomic, weak) BCBatteryDevice *device;
+    @property (nonatomic) BOOL disconnected;
+    @property (nonatomic) CGFloat lastKnownPercentage;
     @property (nonatomic, strong) NSString *deviceName;
     @property (nonatomic) long long devicePercentage;
     @property (nonatomic) CGFloat cellWidth;

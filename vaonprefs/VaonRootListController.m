@@ -75,8 +75,8 @@ NSArray *batteryPreferenceKeys;
 	//-(id)readPreferenceValue:(PSSpecifier*)specifier; use this to get the current modele selected and make a method that returns it and passes it into the pslinkcell in root.plist
 	-(id)init {
 		prefs = [[HBPreferences alloc] initWithIdentifier:@"com.atar13.vaonprefs"];
-		rootPreferenceKeys = @[@"isEnabled", @"switcherMode", @"moduleSelection", @"hideSuggestionBanner", @"customHeightEnabled"];
-		batteryPreferenceKeys = @[@"hideInternal", @"hidePercent", @"pulsateChargingOutline", @"customBatteryCellSizeEnabled", @"customPercentageFontSizeEnabled"];
+		rootPreferenceKeys = @[@"isEnabled", @"switcherMode", @"moduleSelection", @"hideSuggestionBanner", @"customHeightEnabled", @"hideAppTitles", @"customVerticalOffsetEnabled"];
+		batteryPreferenceKeys = @[@"hideInternal", @"hidePercent", @"pulsateChargingOutline", @"customBatteryCellSizeEnabled", @"customPercentageFontSizeEnabled", @"roundOutlineCorners", @"keepDisconnectedDevices"];
 		return [super init];
 	}
 

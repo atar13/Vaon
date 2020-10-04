@@ -47,6 +47,8 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>More modules to be added in future updates</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -62,13 +64,11 @@
 			<key>validTitles</key>
 			<array>
 				<string>Battery</string>
-				<string>Favorite Contacts</string>
 				<string>None</string>
 			</array>
 			<key>validValues</key>
 			<array>
 				<string>battery</string>
-				<string>favoriteContacts</string>
 				<string>none</string>
 			</array>
 			<key>default</key>
@@ -93,6 +93,18 @@
 			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>Additional Options</string>
+		</dict>
+			<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>hideAppTitles</string>
+			<key>label</key>
+			<string>Hide Switcher App Titles</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -167,6 +179,34 @@
 			<string>com.atar13.vaonprefs</string>
 			<key>key</key>
 			<string>customWidth</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customVerticalOffsetEnabled</string>
+			<key>label</key>
+			<string>Enable Custom Vertical Offset from the Bottom</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>-80</integer>
+			<key>min</key>
+			<integer>-1200</integer>
+			<key>max</key>
+			<integer>100</integer>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customVerticalOffset</string>
 		</dict>
 		<dict>
 			<key>cell</key>

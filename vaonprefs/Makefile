@@ -1,4 +1,5 @@
-TARGET := iphone:clang:13.3:latest
+TARGET := iphone:clang:13.0:latest
+# SYSROOT = $(THEOS)/sdks/iPhoneOS13.5.sdk 
 
 include $(THEOS)/makefiles/common.mk
 

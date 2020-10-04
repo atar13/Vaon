@@ -29,6 +29,18 @@
 			<string>hidePercent</string>
 			<key>label</key>
 			<string>Hide Percent(%) Symbol</string>
+		</dict>		
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>roundOutlineCorners</string>
+			<key>label</key>
+			<string>Round Battery Indicator Corners</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -41,6 +53,24 @@
 			<string>pulsateChargingOutline</string>
 			<key>label</key>
 			<string>Pulsate Outline of Charging Devices (Experimental)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Enabling this option may result in duplicate Airpod devices.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>keepDisconnectedDevices</string>
+			<key>label</key>
+			<string>Display Disconnected Devices</string>
 		</dict>
 		<dict>
 			<key>cell</key>
