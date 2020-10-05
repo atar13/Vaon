@@ -20,7 +20,7 @@ weather/AQI view that's similar to battery view
 **/
 
 //credit to Dogbert for the icon
-#import "Vaun.h"
+#import "Vaon.h"
 
 @implementation StrokeEndAnimationDelegate 
 
