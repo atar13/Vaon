@@ -52,13 +52,13 @@
 			<key>key</key>
 			<string>pulsateChargingOutline</string>
 			<key>label</key>
-			<string>Pulsate Outline of Charging Devices (Experimental)</string>
+			<string>Pulsate Outline of Charging Devices</string>
 		</dict>
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Enabling this option may result in duplicate Airpod devices.</string>
+			<string>Enabling this option may result in duplicate devices.</string>
 		</dict>
 		<dict>
 			<key>cell</key>

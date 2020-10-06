@@ -81,6 +81,7 @@ BOOL doneFadingIn = FALSE;
 
 //batteryView variables
 NSArray *connectedBluetoothDevices;
+NSMutableArray *deviceIdentifiers = [[NSMutableArray alloc] init];
 NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
 
 UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
@@ -118,10 +119,12 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
 	}
     -(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag {
 		if(flag&&[self.cell.device isCharging]&&pulsateChargingOutline){
-			self.cell.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
-			[self.cell updateOutlineColor];
+			// [self.cell updateOutlineColor];
 			if([self.cell.device isCharging]){
 				[self.cell.circleOutlineLayer addAnimation:self.nextAnimation forKey:kCATransition];
+			}else{
+				self.cell.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+
 			}			
 
 		}
@@ -289,11 +292,11 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
 	}
 	-(CGFloat)devicePercentageAsProgress {
 		double progress;
-		if(self.disconnected){
+		// if(self.disconnected){
 			progress = self.devicePercentage;
-		}else{
-			progress = [self getDevicePercentage];
-		}
+		// }else{
+		// 	progress = [self getDevicePercentage];
+		// }
 		return progress/100;
 	}
 	-(BOOL)isDeviceInternal {
@@ -306,20 +309,25 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
 		return [self.device isLowBattery];
 	}
 	-(void)updateOutlineColor {
-		HBLogWarn(@"HOPST %@ DEVICE %lld", self.deviceName, [self.device percentCharge]);
 		if([self isDeviceInternal]&&[self isLowPowerModeOn]&&![self.device isCharging]){
 			self.circleOutlineLayer.strokeColor = lowPowerModeColor.CGColor;
 		} else if([self isBatteryLow]&&(![self.device isCharging])){
 			self.circleOutlineLayer.strokeColor = lowBatteryColor.CGColor;
 		} else if([self.device isCharging]&&pulsateChargingOutline){
 			// self.circleOutlineLayer.strokeColor = nil;
-		} else if(self.device==nil){
-			self.circleOutlineLayer.strokeColor = [UIColor systemGrayColor].CGColor;
-			// self.circleOutlineLayer.strokeEnd = 100;
-		} else if(!(self.device==nil)){
-			self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
-		}else {
-			self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+		} 
+		// else if(![self.device isConnected]){
+		// 	self.circleOutlineLayer.strokeColor = [UIColor systemGrayColor].CGColor;
+		// 	// self.circleOutlineLayer.strokeEnd = 100;
+		// } else if([self.device isConnected]){
+		// 	self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+		// }
+		else {
+			if(![self.device isConnected]){
+				self.circleOutlineLayer.strokeColor = [UIColor systemGrayColor].CGColor;
+			} else {
+				self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+			}
 		}
 	}
 	-(void)pulsateOutline {
@@ -446,7 +454,7 @@ void initBatteryView(UIView *view){
 	batteryHStackView.spacing = 30;
 	batteryHStackView.clipsToBounds = TRUE;
 
-	[batteryScrollView setContentSize:CGSizeMake(1000, view.bounds.size.height)];
+	// [batteryScrollView setContentSize:CGSizeMake(1000, view.bounds.size.height)];
 
 
 	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
@@ -528,40 +536,48 @@ void initBaseVaonView(UIView* view) {
 void updateBattery(){
 	dispatch_async(dispatch_get_main_queue(), ^{
 
+		[batteryScrollView setContentSize:CGSizeMake(batteryHStackView.bounds.size.width, batteryHStackView.bounds.size.height)];
+		if(batteryHStackView.bounds.size.width>dockWidth){
+			batteryScrollView.contentInset = UIEdgeInsetsMake(0,batteryHStackView.bounds.size.width/4,0,0);
+		}else{
+			batteryScrollView.contentInset = UIEdgeInsetsMake(0,0,0,0);
+		}
 
 		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
-		NSMutableArray *oldDisconnectedSubviews = [[NSMutableArray alloc] init];
 
 
 
 		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
+
 			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
-			NSMutableArray *cellDevices = [[NSMutableArray alloc] init];
-			for(VaonDeviceBatteryCell *cell in batteryHStackView.subviews){
-				if(!(cell.device==nil)){
-					[cellDevices addObject:cell.device];
-				}
-			}
-			if((![batteryHStackView.subviews containsObject:newCell]&&![deviceNames containsObject:device.name])){
+			HBLogWarn(@"DEVICES %@", deviceNames);
+			//&&![deviceNames containsObject:[device name]]
+			if(![batteryHStackView.subviews containsObject:newCell]&&![deviceNames containsObject:newCell.deviceName]){
+	
+
 				if(![device isInternal]){
-					[subviewsToBeAdded addObject:newCell];
-					[deviceNames addObject:newCell.deviceName];
+					[subviewsToBeAdded addObject:newCell];			
+					[deviceIdentifiers addObject:[newCell.device identifier]];
+					[deviceNames addObject:[newCell.device name]];			
+
 				}else{
 					if(!hideInternal){
 						[subviewsToBeAdded addObject:newCell];
-						[deviceNames addObject:newCell.deviceName];
-					}
+						[deviceIdentifiers addObject:[newCell.device identifier]];
+						[deviceNames addObject:[newCell.device name]];			
+					}							
 				}
+
 			}
+
 		}
 
 		for(VaonDeviceBatteryCell *subview in subviewsToBeAdded){
 
 			[batteryHStackView addArrangedSubview:subview];
-			// [batteryScrollView setContentSize:CGSizeMake(batteryHStackView.bounds.size.width, batteryHStackView.bounds.size.height)];
 
 			subview.alpha = 0;
 			[UIView animateWithDuration:0.3 animations:^ {
@@ -575,21 +591,34 @@ void updateBattery(){
 		}
 
 		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
-			if([subview.device isConnected]){
-				subview.disconnected = FALSE;
-				// if([oldDisconnectedSubviews containsObject:subview]){
-				[oldDisconnectedSubviews removeObject:subview];
-				// }
-			} else{
-				if(keepDisconnectedDevices){
-					subview.disconnected = TRUE;
-					[oldDisconnectedSubviews addObject:subview];
-				}
-			}
+
+			// if(keepDisconnectedDevices){
+			// 	for(NSString *id in deviceIdentifiers){
+			// 		if([id containsString:[subview.device identifier]]&&![id isEqual:[subview.device identifier]]){
+			// 			subview.alpha = 1;
+			// 			[UIView animateWithDuration:0.3 animations:^ {
+			// 				subview.alpha = 0;
+			// 			}
+			// 			completion:^(BOOL finished) {
+			// 				[subview removeFromSuperview];
+			// 				[deviceIdentifiers removeObject:[subview.device identifier]];
+			// 			}];	
+			// 		}
+			// 	}
+			// }
+
 			if((![connectedBluetoothDevices containsObject:subview.device] && ![subview.device isConnected]) || subview.device == nil ){
 				if(keepDisconnectedDevices){
+					if(subview.device == nil){
+						for(BCBatteryDevice *device in connectedBluetoothDevices){
+							if([subview.deviceName isEqual:[device name]]){
 
-				
+								subview.device = device;
+								[subview updateOutlineColor];
+								[subview updatePercentageColor];
+							}
+						}
+					}
 				}else{
 					subview.alpha = 1;
 					[UIView animateWithDuration:0.3 animations:^ {
@@ -597,27 +626,35 @@ void updateBattery(){
 					}
 					completion:^(BOOL finished) {
 						[subview removeFromSuperview];
-						[deviceNames removeObject:subview.deviceName];
+						[deviceIdentifiers removeObject:[subview.device identifier]];
+						[deviceNames removeObject:subview.deviceName];			
 					}];	
 				}
 
 				
 			}
-			//loop through oldDisconnectedSubviews
-			// if(![oldDisconnectedSubviews containsObject:subview]){
-			if(!(subview.device==nil)){
+
+			if(keepDisconnectedDevices){		
+				// for(BCBatteryDevice *updatedDevice in connectedBluetoothDevices){
+				// 	if([[subview.device identifier] isEqual:[updatedDevice identifier]]){
+				// 		subview.device = updatedDevice;				
+				// 	}
+
+				// }
+
+					[subview updateOutlineColor];
+					[subview updatePercentageColor];
+
+					if([subview.device isConnected]){
+						[subview updateDevicePercentage];
+						[subview updateDevicePercentageLabel];
+					}
+			} else {
 				[subview updateDevicePercentageLabel];
-				// [subview animateOutlineLayer:[subview devicePercentageAsProgress]];
 				[subview updateOutlineColor];
 				[subview updatePercentageColor];
-				// [subview updateCircleOutline];
-				// if(pulsateChargingOutline){
-				// 	[subview pulsateOutline];
-				// }
 				[subview updateDevicePercentage];
-			}else{
-				[subview updateOutlineColor];
-
+	
 			}
 		}
 
