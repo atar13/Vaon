@@ -1,65 +1,9 @@
 #import <Cephei/HBPreferences.h>
-#import <Vaon.h>
+// #import <Vaon.h>
 #import <QuartzCore/QuartzCore.h>
 
 
-HBPreferences *prefs;
 
-//preference variables
-BOOL isEnabled;
-NSString *switcherMode = nil;
-NSString *selectedModule = nil;
-BOOL hideAppTitles;
-BOOL hideSuggestionBanner;
-BOOL customHeightEnabled;
-CGFloat customHeight;
-BOOL customWidthEnabled;
-CGFloat customWidth;
-BOOL customVerticalOffsetEnabled;
-CGFloat customVerticalOffset;
-
-BOOL hideInternal;
-BOOL hidePercent;
-BOOL roundOutlineCorners;
-BOOL pulsateChargingOutline;
-BOOL keepDisconnectedDevices;
-BOOL customBatteryCellSizeEnabled;
-CGFloat customBatteryCellSize; 
-BOOL customPercentageFontSizeEnabled;
-CGFloat customPercentageFontSize;
-
-UIView *vaonView;
-UIView *vaonGridView;
-
-UIScrollView *batteryScrollView;
-
-UIStackView *batteryHStackView;
-// UIScrollView *favoriteContactsScrollView;
-UIStackView *favoriteContactsHStackView;
-
-UIColor *vaonViewBackgroundColor;
-UIVisualEffectView *vaonBlurView;
-UIBlurEffect *blurEffect;
-UILabel *titleLabel;
-
-int vaonViewCornerRadius = 17;
-
-CGFloat dockWidth;
-BOOL vaonViewIsInitialized = FALSE;
-
-// long long sbAppSwitcherOrientation;
-SBMainSwitcherViewController *mainAppSwitcherVC;
-long long customSwitcherStyle;
-long long currentSwitcherStyle;
-BOOL appSwitcherOpen = FALSE;
-int fadeInCounter = 0;
-BOOL doneFadingIn = FALSE;
-
-//batteryView variables
-NSArray *connectedBluetoothDevices;
-NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
-
-UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
 
 @interface SBMainSwitcherViewController : UIViewController
 + (id)sharedInstance;
