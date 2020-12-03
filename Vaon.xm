@@ -22,6 +22,8 @@ weather/AQI view that's similar to battery view
 //credit to Dogbert for the icon
 
 #import "Vaon.h"
+#import <UIKit/UIKit.h>
+#import <Cephei/HBPreferences.h>
 
 HBPreferences *prefs;
 
@@ -532,13 +534,13 @@ void updateBattery(){
 	dispatch_async(dispatch_get_main_queue(), ^{
 
 		[batteryScrollView setContentSize:CGSizeMake(batteryHStackView.bounds.size.width, batteryHStackView.bounds.size.height)];
-		if(batteryHStackView.bounds.size.width>dockWidth){
+		if(batteryHStackView.bounds.size.width > dockWidth){
 			batteryScrollView.contentInset = UIEdgeInsetsMake(0,batteryHStackView.bounds.size.width/4,0,0);
 		}else{
 			batteryScrollView.contentInset = UIEdgeInsetsMake(0,0,0,0);
 		}
 
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
 
 
@@ -548,7 +550,7 @@ void updateBattery(){
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
 
 			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
-			HBLogWarn(@"DEVICES %@", deviceNames);
+			//HBLogWarn(@"DEVICES %@", deviceNames);
 			//&&![deviceNames containsObject:[device name]]
 			if(![batteryHStackView.subviews containsObject:newCell]&&![deviceNames containsObject:newCell.deviceName]){
 	

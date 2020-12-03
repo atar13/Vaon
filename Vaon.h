@@ -1,7 +1,7 @@
 #import <Cephei/HBPreferences.h>
 // #import <Vaon.h>
 #import <QuartzCore/QuartzCore.h>
-
+#import <UIKit/UIKit.h>
 
 
 
@@ -59,6 +59,8 @@
 @interface BCBatteryDeviceController : NSObject
 + (id)sharedInstance;
 - (NSArray*)connectedDevices;
+@property (setter=_setSortedDevices:,getter=_sortedDevices,nonatomic,retain) NSArray * sortedDevices;                                                 
+-(id)_sortedDevices;
 -(void)_queue_addDeviceChangeHandler:(/*^block*/id)arg1 withIdentifier:(id)arg2 ;
  -(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1;
 @end

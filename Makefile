@@ -1,8 +1,6 @@
-export ARCHS = arm64 arm64e 
-# export SDKVERSION = 13.5
-SYSROOT = $(THEOS)/sdks/iPhoneOS13.5.sdk
-THEOS_DEVICE_IP = 100.113.189.255
-# THEOS_DEVICE_IP = 192.168.1.20
+ARCHS = arm64 arm64e
+SDKVERSION = 13.5
+# SYSROOT = $(THEOS)/sdks/iPhoneOS11.2.sdk
 
 TARGET := iphone:clang:13.0:latest
 INSTALL_TARGET_PROCESSES = SpringBoard
