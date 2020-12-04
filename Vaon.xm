@@ -540,18 +540,17 @@ void updateBattery(){
 			batteryScrollView.contentInset = UIEdgeInsetsMake(0,0,0,0);
 		}
 
+		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
 
 
 
-		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
 
 			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
-			//HBLogWarn(@"DEVICES %@", deviceNames);
-			//&&![deviceNames containsObject:[device name]]
+			
 			if(![batteryHStackView.subviews containsObject:newCell]&&![deviceNames containsObject:newCell.deviceName]){
 	
 
@@ -1045,7 +1044,7 @@ void updateSettings(){
 	[prefs registerBool:&hidePercent default:FALSE forKey:@"hidePercent"];
 	[prefs registerBool:&roundOutlineCorners default:TRUE forKey:@"roundOutlineCorners"];
 	[prefs registerBool:&pulsateChargingOutline default:FALSE forKey:@"pulsateChargingOutline"];
-	[prefs registerBool:&keepDisconnectedDevices default:FALSE forKey:@"keepDisconnectedDevices"];
+	[prefs registerBool:&keepDisconnectedDevices default:TRUE forKey:@"keepDisconnectedDevices"];
 	[prefs registerBool:&customBatteryCellSizeEnabled default:FALSE forKey:@"customBatteryCellSizeEnabled"];
 	[prefs registerFloat:&customBatteryCellSize default:50 forKey:@"customBatteryCellSize"];
 	[prefs registerBool:&customPercentageFontSizeEnabled default:FALSE forKey:@"customPercentageFontSizeEnabled"];

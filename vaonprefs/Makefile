@@ -1,3 +1,4 @@
+ARCHS = arm64 arm64e
 TARGET := iphone:clang:13.0:latest
 # SYSROOT = $(THEOS)/sdks/iPhoneOS13.5.sdk 
 

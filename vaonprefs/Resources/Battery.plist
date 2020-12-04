@@ -64,7 +64,7 @@
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
-			<false/>
+			<true/>
 			<key>defaults</key>
 			<string>com.atar13.vaonprefs</string>
 			<key>key</key>
