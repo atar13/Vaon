@@ -81,6 +81,7 @@ BOOL doneFadingIn = FALSE;
 NSArray *connectedBluetoothDevices;
 NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
 NSMutableArray *deviceIdentifiers = [[NSMutableArray alloc] init];
+NSMutableArray *deviceGlyphs = [[NSMutableArray alloc] init];
 
 UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
 
@@ -211,6 +212,8 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
         // self.circleOutlineLayer.position = self.circleBackgroundVisualEffectView.contentView.center;
         self.circleOutlineLayer.fillColor = [UIColor clearColor].CGColor;
         // self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+		
+		//rounds the corners of the outline layer 
 		if(roundOutlineCorners){
 			self.circleOutlineLayer.lineCap = kCALineCapRound;
 		}
@@ -327,6 +330,9 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
 			}
 		}
 	}
+
+	//Add something to handle when charging ends and reset the color to its original instead of 
+	//leaving it as gray
 	-(void)pulsateOutline {
 		if([self.device isCharging]){
 			CAMediaTimingFunction *animationColorTimingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionDefault];
@@ -546,7 +552,7 @@ void updateBattery(){
 
 
 
-
+		//loops through and finds new devices to add 
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
 
 			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
@@ -571,6 +577,7 @@ void updateBattery(){
 
 		}
 
+		//actually add subviews to the hstack
 		for(VaonDeviceBatteryCell *subview in subviewsToBeAdded){
 
 			[batteryHStackView addArrangedSubview:subview];
@@ -586,36 +593,25 @@ void updateBattery(){
 			}];	
 		}
 
+		//update device view properties
 		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
 
-			// if(keepDisconnectedDevices){
-			// 	for(NSString *id in deviceIdentifiers){
-			// 		if([id containsString:[subview.device identifier]]&&![id isEqual:[subview.device identifier]]){
-			// 			subview.alpha = 1;
-			// 			[UIView animateWithDuration:0.3 animations:^ {
-			// 				subview.alpha = 0;
-			// 			}
-			// 			completion:^(BOOL finished) {
-			// 				[subview removeFromSuperview];
-			// 				[deviceIdentifiers removeObject:[subview.device identifier]];
-			// 			}];	
-			// 		}
-			// 	}
-			// }
-
+			//checks if the device is not connected anymore 
 			if((![connectedBluetoothDevices containsObject:subview.device] && ![subview.device isConnected]) || subview.device == nil ){
+				//if keep is turned on, keep the device and just update its properties
 				if(keepDisconnectedDevices){
 					if(subview.device == nil){
 						for(BCBatteryDevice *device in connectedBluetoothDevices){
 							if([subview.deviceName isEqual:[device name]]){
-
 								subview.device = device;
 								[subview updateOutlineColor];
 								[subview updatePercentageColor];
+								subview.deviceGlyphView = [[UIImageView alloc] initWithImage:subview.device.glyph];
 							}
 						}
 					}
 				}else{
+					//remove subviews that aren't connected if keepDisconnectedDevices is turned off
 					subview.alpha = 1;
 					[UIView animateWithDuration:0.3 animations:^ {
 						subview.alpha = 0;
@@ -626,25 +622,20 @@ void updateBattery(){
 						[deviceNames removeObject:subview.deviceName];			
 					}];	
 				}
-
-				
 			}
 
+			//updates outline color and percentage values 
 			if(keepDisconnectedDevices){		
-				// for(BCBatteryDevice *updatedDevice in connectedBluetoothDevices){
-				// 	if([[subview.device identifier] isEqual:[updatedDevice identifier]]){
-				// 		subview.device = updatedDevice;				
-				// 	}
+				[subview updateOutlineColor];
+				[subview updatePercentageColor];
 
-				// }
+				if([subview.device isConnected]){
+					[subview updateDevicePercentage];
+					[subview updateDevicePercentageLabel];
+				}else{
+					//maybe use enum values
 
-					[subview updateOutlineColor];
-					[subview updatePercentageColor];
-
-					if([subview.device isConnected]){
-						[subview updateDevicePercentage];
-						[subview updateDevicePercentageLabel];
-					}
+				}
 			} else {
 				[subview updateDevicePercentageLabel];
 				[subview updateOutlineColor];
@@ -752,7 +743,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		%orig;
 		if(![selectedModule isEqual:@"none"]){
 			CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
-			if(!vaonViewIsInitialized&&!(currentSwitcherStyle==2)){
+			if(!vaonViewIsInitialized && !(currentSwitcherStyle==2)){
 
 				vaonView = [[UIView alloc] init];
 
@@ -791,11 +782,10 @@ void fadeViewOut(UIView *view, CGFloat duration){
 				// }
 			}	
 		}
-		//fadeViewIn()?
 		
-				if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
-					fadeViewIn(vaonView, 0.3);
-				}
+		if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
+			fadeViewIn(vaonView, 0.3);
+		}
 	}
 %end
 
