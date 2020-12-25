@@ -85,6 +85,9 @@ NSMutableArray *deviceGlyphs = [[NSMutableArray alloc] init];
 
 UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
 
+NSTimer *delayedFadeInTimer = nil;
+NSTimer *delayedPulsateTimer = nil;
+
 @implementation StrokeEndAnimationDelegate 
 
 	-(instancetype)initWithCell:(VaonDeviceBatteryCell *)cell {
@@ -92,6 +95,8 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
 		self.cell = cell;
 		return self;
 	}
+
+	//keeps the outline at its position
     -(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag {
 		if(flag){
 			[CATransaction begin];
@@ -100,9 +105,19 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
 			self.cell.circleOutlineLayer.strokeEnd = [self.cell devicePercentageAsProgress];
 			[CATransaction commit];
 			if(pulsateChargingOutline){
+				// delayedPulsateTimer = [NSTimer scheduledTimerWithTimeInterval:1
+				// 							target:self
+				// 							selector:@selector(delayedPulsate)
+				// 							userInfo:nil
+				// 							repeats:NO];	
 				[self.cell pulsateOutline];
 			}
 		}
+	}
+
+
+	-(void)delayedPulsate {
+		[self.cell pulsateOutline];
 	}
 
 @end
@@ -314,7 +329,7 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
 		} else if([self isBatteryLow]&&(![self.device isCharging])){
 			self.circleOutlineLayer.strokeColor = lowBatteryColor.CGColor;
 		} else if([self.device isCharging]&&pulsateChargingOutline){
-			// self.circleOutlineLayer.strokeColor = nil;
+			self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
 		} 
 		// else if(![self.device isConnected]){
 		// 	self.circleOutlineLayer.strokeColor = [UIColor systemGrayColor].CGColor;
@@ -379,10 +394,10 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
 		self.percentageAnimation.delegate = delegate;
 		self.percentageAnimation.fromValue = @(0.0);
 		self.percentageAnimation.toValue = @([self devicePercentageAsProgress]);
-		self.percentageAnimation.duration = 0.3;
+		self.percentageAnimation.duration = 0.25;
 		[self.percentageAnimation setFillMode:kCAFillModeForwards];
 		[self.percentageAnimation setRemovedOnCompletion:TRUE];
-		CAMediaTimingFunction *animationTimingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+		CAMediaTimingFunction *animationTimingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
 		self.percentageAnimation.timingFunction = animationTimingFunction;
 		
 		[self.circleOutlineLayer addAnimation:self.percentageAnimation forKey:kCATransition];
@@ -651,13 +666,16 @@ void updateBattery(){
 
 
 void fadeViewIn(UIView *view, CGFloat duration){
+
+	if(delayedFadeInTimer!=nil){
+		[delayedFadeInTimer invalidate];
+	}
 	
 	NSLog(@"%s", "Vaon started fading in");
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 1;
 	} completion:^(BOOL finished) {
 		if(view.alpha==1){
-			NSLog(@"%s", "Vaon done animating");
 			if([selectedModule isEqual:@"battery"]){
 				updateBattery();
 				for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
@@ -784,16 +802,27 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			} else {
 			// 	//immediately hide and then fade in
 				if(stockHidden){
-					fadeViewIn(vaonView, 0.3);
+					// dispatch_async(dispatch_get_main_queue(), ^{
+					delayedFadeInTimer = [NSTimer scheduledTimerWithTimeInterval:0.3
+												target:self
+												selector:@selector(fadeInFromApp)
+												userInfo:nil
+												repeats:NO];	
+					// });
+					// fadeViewIn(vaonView, 0.3);
 				} 
 			}
 		}
 	}
 
+	%new 
+	-(void)fadeInFromApp {
+		fadeViewIn(vaonView, 0.3);
+	}
+
 
 	-(void)movedToWindow:(id)arg1 {
 		%orig;
-		// NSLog(@"%s", "Vaon toFront");
 		// fadeViewIn(vaonView, 2);
 	}
 %end
@@ -869,11 +898,12 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			// FinalFluidSwitcherGestureAction
 			NSString *eventLabel = [[NSString alloc] initWithFormat:@"%@", arg3];
 
-			// if(!(currentSwitcherStyle==2)){
+			//only for stock switcher
 			if(![appLayoutString containsString:@"appLayout: 0x0;"]){		
 				// [UIView animateWithDuration:0.2 animations:^ {
 				// 	vaonView.alpha = 0;
 				// }];
+				NSLog(@"%s", "Vaon hopst");
 				fadeViewOut(vaonView, 0.2);
 			}
 			if([eventLabel isEqual:@"FinalFluidSwitcherGestureAction"]&&mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
@@ -896,6 +926,11 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	//fade in and out for vaon in grid mode
 	-(void)_updateDisplayLayoutElementForLayoutState: (id)arg1 {
 		%orig;
+		// SBApplication *frontApp = [(SpringBoard*)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
+		// NSString *currentAppDisplayID = [frontApp bundleIdentifier];
+		// if(currentAppDisplayID != nil && !stockHidden){
+		// 	fadeViewOut(vaonGridView, 0.3);
+		// }
 		if(![selectedModule isEqual:@"none"]){
 			appSwitcherOpen = [self isAnySwitcherVisible];
 			if(currentSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
