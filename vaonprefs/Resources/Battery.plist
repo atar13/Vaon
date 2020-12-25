@@ -6,6 +6,12 @@
 	<array>
 		<dict>
 			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>* Pulsate animations are an experimental feature with a few graphical issues</string>
+		</dict>
+		<dict>
+			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
 			<false/>
@@ -52,7 +58,7 @@
 			<key>key</key>
 			<string>pulsateChargingOutline</string>
 			<key>label</key>
-			<string>Pulsate Outline of Charging Devices</string>
+			<string>Pulsate Outline of Charging Devices *</string>
 		</dict>
 		<dict>
 			<key>cell</key>

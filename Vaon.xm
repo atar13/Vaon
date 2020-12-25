@@ -76,6 +76,7 @@ long long currentSwitcherStyle;
 BOOL appSwitcherOpen = FALSE;
 int fadeInCounter = 0;
 BOOL doneFadingIn = FALSE;
+BOOL stockHidden = TRUE;
 
 //batteryView variables
 NSArray *connectedBluetoothDevices;
@@ -651,11 +652,15 @@ void updateBattery(){
 
 
 void fadeViewIn(UIView *view, CGFloat duration){
-	if(doneFadingIn==FALSE){
+	
+	NSLog(@"%s", "Vaon started fading in");
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 1;
 	} 	
 	completion:^(BOOL finished) {
+		
+		if(view.alpha==1){
+		NSLog(@"%s", "Vaon done animating");
 		if([selectedModule isEqual:@"battery"]){
 			updateBattery();
 			if(fadeInCounter==0){
@@ -669,12 +674,17 @@ void fadeViewIn(UIView *view, CGFloat duration){
 
 			}
 		}
-		doneFadingIn = TRUE;
+		}
 	}];	
-	}
+	
+}
+
+void hideView(UIView *view){
+	view.alpha = 0;
 }
 
 void fadeViewOut(UIView *view, CGFloat duration){
+	NSLog(@"%s", "Vaon Fade Out");
 	for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
 				[subview newAnimateOuterLayerToZero];
 	}	
@@ -687,7 +697,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 
 		}
-		doneFadingIn = FALSE;
+		stockHidden = TRUE;
 	}];	
 }
 
@@ -776,16 +786,29 @@ void fadeViewOut(UIView *view, CGFloat duration){
 				}
 
 				vaonViewIsInitialized = TRUE;
-				// if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
-				// 	fadeViewIn(vaonView, 0.3);
 
-				// }
 			}	
 		}
 		
 		if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
-			fadeViewIn(vaonView, 0.3);
+			SBApplication *frontApp = [(SpringBoard*)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
+			NSString *currentAppDisplayID = [frontApp bundleIdentifier];
+			if(currentAppDisplayID==nil){
+				fadeViewIn(vaonView, 0.3);
+			} else {
+			// 	//immediately hide and then fade in
+				if(stockHidden){
+					fadeViewIn(vaonView, 0.3);
+				} 
+			}
 		}
+	}
+
+
+	-(void)movedToWindow:(id)arg1 {
+		%orig;
+		// NSLog(@"%s", "Vaon toFront");
+		// fadeViewIn(vaonView, 2);
 	}
 %end
 
@@ -853,7 +876,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 	//fade out vaon when entering an app layout from the switcher
 	-(void)_configureRequest:(id)arg1 forSwitcherTransitionRequest:(id)arg2 withEventLabel:(id)arg3 {
-		if(![selectedModule isEqual:@"none"]){
+		if(![selectedModule isEqual:@"none"] && customSwitcherStyle != 2){
 			NSString *switcherTransitionRequest = [[NSString alloc] initWithFormat:@"%@", arg2];
 			NSUInteger indexAfterAppLayout =  [switcherTransitionRequest rangeOfString: @"appLayout: "].location;
 			NSString *appLayoutString = [switcherTransitionRequest substringFromIndex:indexAfterAppLayout];
@@ -869,7 +892,10 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			}
 			if([eventLabel isEqual:@"FinalFluidSwitcherGestureAction"]&&mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
 
-				fadeViewIn(vaonView, 0.3);
+				//uncommenting this makes the animation begin before the view appears but doesnt fade in when the switcher is launched
+				//from an app
+				//need to look into why this runs in stock mode
+				// fadeViewIn(vaonView, 2);
 
 
 			}
@@ -888,7 +914,6 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			appSwitcherOpen = [self isAnySwitcherVisible];
 			if(currentSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
 				if(!appSwitcherOpen){
-				// if(doneFadingIn){
 					fadeViewOut(vaonGridView, 0.3);
 				}else{
 					if(!(vaonGridView.alpha==1)){
@@ -897,12 +922,9 @@ void fadeViewOut(UIView *view, CGFloat duration){
 				}
 			}
 		}
-
 	}
 
-
-
-	%end
+%end
 
 
 %hook SBAppSwitcherSettings

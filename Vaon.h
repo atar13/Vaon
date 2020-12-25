@@ -1,8 +1,7 @@
 #import <Cephei/HBPreferences.h>
-// #import <Vaon.h>
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
-
+#import <SpringBoard/SpringBoard.h>
 
 
 @interface SBMainSwitcherViewController : UIViewController
@@ -175,4 +174,8 @@
 @end
 
 @interface SBAppSwitcherScrollView : BSUIScrollView
+@end
+
+@interface SBApplication
+-(id)bundleIdentifier;
 @end
