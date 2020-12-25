@@ -74,7 +74,6 @@ SBMainSwitcherViewController *mainAppSwitcherVC;
 long long customSwitcherStyle;
 long long currentSwitcherStyle;
 BOOL appSwitcherOpen = FALSE;
-int fadeInCounter = 0;
 BOOL doneFadingIn = FALSE;
 BOOL stockHidden = TRUE;
 
@@ -656,24 +655,17 @@ void fadeViewIn(UIView *view, CGFloat duration){
 	NSLog(@"%s", "Vaon started fading in");
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 1;
-	} 	
-	completion:^(BOOL finished) {
-		
+	} completion:^(BOOL finished) {
 		if(view.alpha==1){
-		NSLog(@"%s", "Vaon done animating");
-		if([selectedModule isEqual:@"battery"]){
-			updateBattery();
-			if(fadeInCounter==0){
-
-			for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
-				if(finished){
-						[subview newAnimateOuterLayerToCurrentPercentage];
+			NSLog(@"%s", "Vaon done animating");
+			if([selectedModule isEqual:@"battery"]){
+				updateBattery();
+				for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
+					if(finished){
+							[subview newAnimateOuterLayerToCurrentPercentage];
 					}
 				}
-				fadeInCounter++;
-
 			}
-		}
 		}
 	}];	
 	
@@ -690,13 +682,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	}	
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 0;
-	}
-	completion:^(BOOL finished) {
-		fadeInCounter = 0;
-		if([selectedModule isEqual:@"battery"]){
-
-
-		}
+	} completion:^(BOOL finished) {
 		stockHidden = TRUE;
 	}];	
 }
