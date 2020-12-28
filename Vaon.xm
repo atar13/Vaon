@@ -1,23 +1,7 @@
 //TODO: 
-//option to keep old disconnected devices on the view
-//custom colors for different battery modes
-//add customtext option to the top/bottom of vaon view
-//option for a split view of two widgets
-//add option for vaon to fly up from the bottom	
-//options for custom placement and resizing
-//make social media icons filled and grey/colorful
-//option to hide percent character
-//change color of outline depending on percentage
 //raise app switcher
-/**
-favorite contacts or an option for recents
-device batteries
-favorited apps
-music player when you 
-countdown 
-airpod pro transparency and noise cancellation
-weather/AQI view that's similar to battery view
-**/
+
+//ios 14 1751.108 
 
 //credit to Dogbert for the icon
 
@@ -27,7 +11,7 @@ weather/AQI view that's similar to battery view
 
 HBPreferences *prefs;
 
-//preference variables
+//main page preference variables
 BOOL isEnabled;
 NSString *switcherMode = nil;
 NSString *selectedModule = nil;
@@ -40,6 +24,7 @@ CGFloat customWidth;
 BOOL customVerticalOffsetEnabled;
 CGFloat customVerticalOffset;
 
+//battery configuration preference variables
 BOOL hideInternal;
 BOOL hidePercent;
 BOOL roundOutlineCorners;
@@ -77,7 +62,6 @@ BOOL appSwitcherOpen = FALSE;
 BOOL doneFadingIn = FALSE;
 BOOL stockHidden = TRUE;
 
-//batteryView variables
 NSArray *connectedBluetoothDevices;
 NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
 NSMutableArray *deviceIdentifiers = [[NSMutableArray alloc] init];
@@ -85,9 +69,11 @@ NSMutableArray *deviceGlyphs = [[NSMutableArray alloc] init];
 
 UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
 
+//timers to initiate animations
 NSTimer *delayedFadeInTimer = nil;
 NSTimer *delayedPulsateTimer = nil;
 
+//delegate for outline animation
 @implementation StrokeEndAnimationDelegate 
 
 	-(instancetype)initWithCell:(VaonDeviceBatteryCell *)cell {
@@ -96,7 +82,7 @@ NSTimer *delayedPulsateTimer = nil;
 		return self;
 	}
 
-	//keeps the outline at its position
+	//keeps the outline at a static position when it finishes animating
     -(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag {
 		if(flag){
 			[CATransaction begin];
@@ -122,6 +108,7 @@ NSTimer *delayedPulsateTimer = nil;
 
 @end
 
+//delegate for charging devices' pulsating color animation 
 @implementation PulsateColorAnimationDelegate
 
 	-(instancetype)initWithCell:(VaonDeviceBatteryCell *)cell nextAnimation:(CAAnimation *)nextAnimation {
@@ -130,27 +117,26 @@ NSTimer *delayedPulsateTimer = nil;
 		self.nextAnimation = nextAnimation;
 		return self;
 	}
+	
+	//when the animation finishes change the color and start another pulsate animation
     -(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag {
 		if(flag&&[self.cell.device isCharging]&&pulsateChargingOutline){
-			// [self.cell updateOutlineColor];
 			if([self.cell.device isCharging]){
 				[self.cell.circleOutlineLayer addAnimation:self.nextAnimation forKey:kCATransition];
 			}else{
 				self.cell.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
-
 			}			
-
 		}
 	}
-
 @end
 
+//Individual battery cell for each device
 @implementation VaonDeviceBatteryCell
 	UIColor *lowPowerModeColor = [UIColor colorWithRed:1 green:0.8 blue:0 alpha:1];
-	// UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
 	UIColor *lowBatteryColor = [UIColor redColor];
 	UIColor *brightGreen = [UIColor colorWithRed:0.1746478873 green:0.2039215686 blue:0.1960784314 alpha: 1];
 
+	//initialization
     -(instancetype)initWithFrame:(CGRect)arg1 device:(BCBatteryDevice *)connectedDevice {
         self.device = connectedDevice;
 		self.disconnected = FALSE;
@@ -161,6 +147,7 @@ NSTimer *delayedPulsateTimer = nil;
 		}
         self.devicePercentage = [connectedDevice percentCharge];
 
+		//initialize view placement
         self = [super initWithFrame:arg1];
         self.axis = UILayoutConstraintAxisVertical;
         self.alignment = UIStackViewAlignmentCenter;
@@ -170,6 +157,7 @@ NSTimer *delayedPulsateTimer = nil;
         self.backgroundColor = [UIColor clearColor];
         self.translatesAutoresizingMaskIntoConstraints = FALSE;
     
+		//initialize bakcground blur effect
 		self.circleBackgroundBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
         self.circleBackgroundVisualEffectView = [[UIVisualEffectView alloc] initWithEffect:self.circleBackgroundBlurEffect];
         self.circleBackgroundVisualEffectView.layer.cornerRadius = self.cellWidth/2;
@@ -178,77 +166,65 @@ NSTimer *delayedPulsateTimer = nil;
 		self.circleBackgroundVisualEffectView.frame = self.bounds;
        	self.circleBackgroundVisualEffectView.contentMode = UIViewContentModeScaleAspectFill;
 
-
+		//battery percentage label
         self.devicePercentageLabel = [[UILabel alloc] init];
-        // self.devicePercentageString = [NSMutableString stringWithFormat: @"%lld", [self devicePercentage]]; 
-        // self.devicePercentageLabel.text =;
         [self updateDevicePercentageLabel];
         [self addPercentageSymbolToLabel];
-        // self.devicePercentageLabel.numberOfLines = 1;
+
+		//font customization
 		UIFont *devicePercentageLabelFont = [[UIFont alloc] init];
+		//custom font size from prefs
 		if(customPercentageFontSizeEnabled){
         	devicePercentageLabelFont = [UIFont systemFontOfSize:customPercentageFontSize weight:UIFontWeightBold];
 		} else{
         	devicePercentageLabelFont = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
 		}
         self.devicePercentageLabel.font = devicePercentageLabelFont;
-		// self.devicePercentageLabel.adjustsFontSizeToFitWidth = TRUE;
         self.devicePercentageLabel.frame = self.bounds;
         self.devicePercentageLabel.clipsToBounds = TRUE;
 
-
-
+		//view placement and constraints for background blur
         [self.circleBackgroundVisualEffectView.contentView addSubview:self.devicePercentageLabel];
-
         self.circleBackgroundVisualEffectView.translatesAutoresizingMaskIntoConstraints = FALSE;
         [self.circleBackgroundVisualEffectView.widthAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
         [self.circleBackgroundVisualEffectView.heightAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
-		// self.devicePercentageLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
-		// [self.devicePercentageLabel.widthAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.widthAnchor].active = TRUE;
-		// [self.devicePercentageLabel.heightAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.heightAnchor].active = TRUE;
-
         [self addArrangedSubview:self.circleBackgroundVisualEffectView];
 
+		//view placement and constrains for battery percentage 
         self.devicePercentageLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
         [self.devicePercentageLabel.centerXAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerXAnchor].active = TRUE;
         [self.devicePercentageLabel.centerYAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerYAnchor].active = TRUE;
 
-        // self.circleOutlinePath = [UIBezierPath bezierPath];
+		//initialize circular outline path
         self.circleOutlinePath = [UIBezierPath bezierPathWithArcCenter:CGPointMake(self.circleBackgroundVisualEffectView.contentView.center.x+self.cellWidth/2,self.circleBackgroundVisualEffectView.contentView.center.y+self.cellWidth/2)
             radius:self.cellWidth/2
             startAngle:[self degreesToRadians:(-90)]
             endAngle:[self degreesToRadians:(270)]
             clockwise:TRUE];
-		// self.circleOutlinePath = [UIBezierPath bezierPathWithOvalInRect:self.circleBackgroundVisualEffectView.contentView.bounds];
-
-
         self.circleOutlineLayer = [[CAShapeLayer alloc] init];
         self.circleOutlineLayer.bounds = self.bounds;
-        // self.circleOutlineLayer.position = self.circleBackgroundVisualEffectView.contentView.center;
         self.circleOutlineLayer.fillColor = [UIColor clearColor].CGColor;
-        // self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
-		
-		//rounds the corners of the outline layer 
-		if(roundOutlineCorners){
-			self.circleOutlineLayer.lineCap = kCALineCapRound;
-		}
 		self.circleOutlineLayer.strokeStart = 0;
 		self.circleOutlineLayer.strokeEnd = 0;
         self.circleOutlineLayer.path = [self.circleOutlinePath CGPath];
         self.circleOutlineLayer.lineWidth = self.cellWidth/10;
 		self.circleOutlineLayer.masksToBounds = FALSE;
         [self.layer addSublayer:self.circleOutlineLayer];
-	
+		
+		//rounds the corners of the outline layer 
+		if(roundOutlineCorners){
+			self.circleOutlineLayer.lineCap = kCALineCapRound;
+		}
 
+		//initialize device image and its constraints
         self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
-		// [self.deviceGlyphView.widthAnchor constraintEqualToConstant:50].active = TRUE;
 		self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
 		[self.deviceGlyphView.heightAnchor constraintEqualToConstant:self.cellWidth*0.6].active = TRUE;
 		
         [self addArrangedSubview:self.deviceGlyphView];
-		// [self.circleOutlineLayer setNeedsDisplay];
 		[self.circleBackgroundVisualEffectView setNeedsDisplay];
         self.deviceName = connectedDevice.name;
+
         return self;
     }
 
@@ -261,6 +237,7 @@ NSTimer *delayedPulsateTimer = nil;
     -(CGFloat)getCellWidth {
         return cellWidth;
     }
+
     -(void)setCellWidth:(CGFloat)arg1 {
         cellWidth = arg1;
     }
@@ -268,76 +245,56 @@ NSTimer *delayedPulsateTimer = nil;
     -(void)addPercentageSymbolToLabel {
 		if(!hidePercent){
         	[self.devicePercentageString appendString:@"%"];
-			// NSString *partsNum = [NSString stringWithFormat:@"%@"
 		}
     }
+
     -(long long)getDevicePercentage {
         return [self.device percentCharge];
     }
+
 	-(void)updateDevicePercentage {
 		self.devicePercentage = [self getDevicePercentage];
 	}
+
+	//updates a device's percentage and adjusts the label accordingly 
     -(void)updateDevicePercentageLabel {
 		[self updateDevicePercentage];
         self.devicePercentageString = [NSMutableString stringWithFormat:@"%lld",self.devicePercentage];
 		[self addPercentageSymbolToLabel];
-
-        // self.devicePercentageString = string;
         self.devicePercentageLabel.text = self.devicePercentageString;
     }
 
-	-(void)updateCircleOutline {
-		// self.circleOutlinePath = [UIBezierPath bezierPathWithArcCenter:CGPointMake(self.circleBackgroundVisualEffectView.center.x+self.cellWidth/2,self.circleBackgroundVisualEffectView.center.y+self.cellWidth/2)
-        //     radius:self.cellWidth/2
-        //     startAngle:[self degreesToRadians:(-90)]
-        //     endAngle:[self degreesToRadians:(3.6*(self.devicePercentage)-90)]
-        //     clockwise:TRUE];
-
-		[self.circleOutlineLayer setNeedsDisplay];
-	}
-
-	// -(void)animateOutlineLayer:(CGFloat)progress {
-	// 	self.circleOutlineLayer.strokeEnd = progress;
-	// }
-	-(void)resetStrokeEnd {
-		self.circleOutlineLayer.strokeEnd = 0;
-	}
 	-(void)removeFromSuperview {
 		[super removeFromSuperview];
 	}
+
 	-(CGFloat)devicePercentageAsProgress {
-		double progress;
-		// if(self.disconnected){
-			progress = self.devicePercentage;
-		// }else{
-		// 	progress = [self getDevicePercentage];
-		// }
+		double progress = self.devicePercentage;
 		return progress/100;
 	}
+
+	//true if the device is the iPhone/iPad, false otherwise
 	-(BOOL)isDeviceInternal {
 		return [self.device isInternal];
 	}
+
 	-(BOOL)isLowPowerModeOn {
 		return [self.device isBatterySaverModeActive];
 	}
+
 	-(BOOL)isBatteryLow {
 		return [self.device isLowBattery];
 	}
+
+	//updates the outline color depending on the device's charging/connected state
 	-(void)updateOutlineColor {
-		if([self isDeviceInternal]&&[self isLowPowerModeOn]&&![self.device isCharging]){
+		if([self isDeviceInternal] && [self isLowPowerModeOn] && ![self.device isCharging]){
 			self.circleOutlineLayer.strokeColor = lowPowerModeColor.CGColor;
-		} else if([self isBatteryLow]&&(![self.device isCharging])){
+		} else if([self isBatteryLow] && (![self.device isCharging])){
 			self.circleOutlineLayer.strokeColor = lowBatteryColor.CGColor;
-		} else if([self.device isCharging]&&pulsateChargingOutline){
+		} else if([self.device isCharging] && pulsateChargingOutline){
 			self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
-		} 
-		// else if(![self.device isConnected]){
-		// 	self.circleOutlineLayer.strokeColor = [UIColor systemGrayColor].CGColor;
-		// 	// self.circleOutlineLayer.strokeEnd = 100;
-		// } else if([self.device isConnected]){
-		// 	self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
-		// }
-		else {
+		} else {
 			if(![self.device isConnected]){
 				self.circleOutlineLayer.strokeColor = [UIColor systemGrayColor].CGColor;
 			} else {
@@ -346,15 +303,16 @@ NSTimer *delayedPulsateTimer = nil;
 		}
 	}
 
-	//Add something to handle when charging ends and reset the color to its original instead of 
-	//leaving it as gray
+	//starts the pulsating color animation sequence for charging devices
 	-(void)pulsateOutline {
 		if([self.device isCharging]){
 			CAMediaTimingFunction *animationColorTimingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionDefault];
 
+			//initializes animations
 			CABasicAnimation *normalToBright = [CABasicAnimation animationWithKeyPath:@"strokeColor"];	
 			CABasicAnimation *brightToNormal = [CABasicAnimation animationWithKeyPath:@"strokeColor"];
 
+			//assigns delegate to animations 
 			PulsateColorAnimationDelegate *normalToBrightDelegate = [[PulsateColorAnimationDelegate alloc] initWithCell:self nextAnimation:brightToNormal];
 			normalToBright.delegate = normalToBrightDelegate;
 			PulsateColorAnimationDelegate *brightToNormalDelegate = [[PulsateColorAnimationDelegate alloc] initWithCell:self nextAnimation:normalToBright];
@@ -374,21 +332,21 @@ NSTimer *delayedPulsateTimer = nil;
 			[brightToNormal setFillMode:kCAFillModeForwards];
 			[brightToNormal setRemovedOnCompletion:FALSE];
 			
-			// self.circleOutlineLayer.strokeColor = brightGreen.CGColor;
 			[self.circleOutlineLayer addAnimation:normalToBright forKey:kCATransition];
 		}
 	}
+
+	//makes percentage label green if charging 
 	-(void)updatePercentageColor {
 		if([self.device isCharging]){
 			self.devicePercentageLabel.textColor = normalBatteryColor;
 		}else {
 			self.devicePercentageLabel.textColor = [UIColor labelColor];
-
 		}
 	}
-	-(void)newAnimateOuterLayerToCurrentPercentage{
-		// self.circleOutlineLayer.strokeEnd = 0;
 
+	//animates outline position along the bezier path
+	-(void)newAnimateOuterLayerToCurrentPercentage{
 		self.percentageAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
 		StrokeEndAnimationDelegate *delegate = [[StrokeEndAnimationDelegate alloc] initWithCell:self];
 		self.percentageAnimation.delegate = delegate;
@@ -399,63 +357,59 @@ NSTimer *delayedPulsateTimer = nil;
 		[self.percentageAnimation setRemovedOnCompletion:TRUE];
 		CAMediaTimingFunction *animationTimingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
 		self.percentageAnimation.timingFunction = animationTimingFunction;
-		
 		[self.circleOutlineLayer addAnimation:self.percentageAnimation forKey:kCATransition];
 	}
+
+	//returns outline position to zero
 	-(void)newAnimateOuterLayerToZero {
 		self.circleOutlineLayer.strokeEnd = 0;
 	}
 
-
 @end
 
-@implementation VaonFavoriteContactsCell
+// @implementation VaonFavoriteContactsCell
 
--(instancetype)initWithFrame:(CGRect)arg1 favoriteEntry:(CNFavoriteEntry *)favoriteEntry {
-	self = [super initWithFrame:arg1];
-	self.axis = UILayoutConstraintAxisVertical;
-	self.alignment = UIStackViewAlignmentCenter;
-	self.distribution = UIStackViewDistributionEqualSpacing;
-	self.spacing = 10;
-	self.clipsToBounds = TRUE;
-	self.backgroundColor = [UIColor clearColor];
-	self.translatesAutoresizingMaskIntoConstraints = FALSE;
+// -(instancetype)initWithFrame:(CGRect)arg1 favoriteEntry:(CNFavoriteEntry *)favoriteEntry {
+// 	self = [super initWithFrame:arg1];
+// 	self.axis = UILayoutConstraintAxisVertical;
+// 	self.alignment = UIStackViewAlignmentCenter;
+// 	self.distribution = UIStackViewDistributionEqualSpacing;
+// 	self.spacing = 10;
+// 	self.clipsToBounds = TRUE;
+// 	self.backgroundColor = [UIColor clearColor];
+// 	self.translatesAutoresizingMaskIntoConstraints = FALSE;
 
-	self.favoriteEntry = favoriteEntry;
-	self.contact = favoriteEntry.contact;
-
-
-	self.contactNameLabel = [[UILabel alloc] init];
-	self.contactNameLabel.text = [self.favoriteEntry originalName];
-	self.contactNameLabel.adjustsFontSizeToFitWidth = TRUE;
-	self.contactNameLabel.frame = self.bounds;
-	self.contactNameLabel.clipsToBounds = TRUE;
-
-	[self addArrangedSubview:self.contactNameLabel];
-
-	NSData *imageData = self.contact.imageData;
-
-	UIImage *contactImage = [UIImage imageWithData:imageData];
-	self.contactImageView = [[UIImageView alloc] initWithImage:contactImage];
-	self.contactImageView.contentMode = UIViewContentModeScaleAspectFit;
-	self.contactImageView.frame = self.bounds;
-	self.contactImageView.clipsToBounds = TRUE;
-
-	[self addArrangedSubview:self.contactImageView];
-
-	return self;
-}
+// 	self.favoriteEntry = favoriteEntry;
+// 	self.contact = favoriteEntry.contact;
 
 
-@end
+// 	self.contactNameLabel = [[UILabel alloc] init];
+// 	self.contactNameLabel.text = [self.favoriteEntry originalName];
+// 	self.contactNameLabel.adjustsFontSizeToFitWidth = TRUE;
+// 	self.contactNameLabel.frame = self.bounds;
+// 	self.contactNameLabel.clipsToBounds = TRUE;
 
+// 	[self addArrangedSubview:self.contactNameLabel];
 
+// 	NSData *imageData = self.contact.imageData;
 
+// 	UIImage *contactImage = [UIImage imageWithData:imageData];
+// 	self.contactImageView = [[UIImageView alloc] initWithImage:contactImage];
+// 	self.contactImageView.contentMode = UIViewContentModeScaleAspectFit;
+// 	self.contactImageView.frame = self.bounds;
+// 	self.contactImageView.clipsToBounds = TRUE;
 
+// 	[self addArrangedSubview:self.contactImageView];
 
+// 	return self;
+// }
 
+// @end
+
+//initialize the battery view 
 void initBatteryView(UIView *view){
 
+	//initialize horizontal scroll view
 	batteryScrollView = [[UIScrollView alloc] initWithFrame:view.bounds];
 	batteryScrollView.scrollsToTop = FALSE;
 	batteryScrollView.directionalLockEnabled = TRUE;
@@ -463,8 +417,8 @@ void initBatteryView(UIView *view){
 	batteryScrollView.alwaysBounceHorizontal = FALSE;
 	batteryScrollView.showsHorizontalScrollIndicator = TRUE;
 	batteryScrollView.showsVerticalScrollIndicator = FALSE;
-	// batteryScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
+	//initialize horizontal stack view
 	batteryHStackView = [[UIStackView alloc] initWithFrame:batteryScrollView.bounds];
 	batteryHStackView.axis = UILayoutConstraintAxisHorizontal;
 	batteryHStackView.alignment = UIStackViewAlignmentCenter;
@@ -472,15 +426,15 @@ void initBatteryView(UIView *view){
 	batteryHStackView.spacing = 30;
 	batteryHStackView.clipsToBounds = TRUE;
 
-	// [batteryScrollView setContentSize:CGSizeMake(1000, view.bounds.size.height)];
-
-
+	//gather bluetooth battery information
 	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
 
+	//adds to the view hierarchy
 	[view addSubview:batteryScrollView];
 	[batteryScrollView addSubview:batteryHStackView];
 
-	if(!(currentSwitcherStyle==2)){
+
+	if(!(currentSwitcherStyle == 2)){
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
 			VaonDeviceBatteryCell *cell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
 			if(![device isInternal]){
@@ -490,51 +444,48 @@ void initBatteryView(UIView *view){
 					[batteryHStackView addArrangedSubview:cell]; 
 				}
 			}
-			// [batteryScrollView setContentSize:CGSizeMake(batteryHStackView.bounds.size.width, batteryHStackView.bounds.size.height)];
-
 		}
 	}
+
+	//scroll view constraints
 	batteryScrollView.translatesAutoresizingMaskIntoConstraints = FALSE;
 	[batteryScrollView.centerXAnchor constraintEqualToAnchor:view.centerXAnchor].active = TRUE;
 	[batteryScrollView.centerYAnchor constraintEqualToAnchor:view.centerYAnchor].active = TRUE;
 	[batteryScrollView.heightAnchor constraintEqualToAnchor:view.heightAnchor].active = TRUE;
 	[batteryScrollView.widthAnchor constraintEqualToAnchor:view.widthAnchor].active = TRUE;
 
+	//horizontal stack view constraints
 	batteryHStackView.translatesAutoresizingMaskIntoConstraints = FALSE;
-
 	[batteryHStackView.centerXAnchor constraintEqualToAnchor:batteryScrollView.centerXAnchor].active = TRUE;
 	[batteryHStackView.centerYAnchor constraintEqualToAnchor:batteryScrollView.centerYAnchor].active = TRUE;
-
 }
 
+// void initFavoriteContactsView(UIView *view) {
+// 	// favoriteContactsScrollView
 
+// 	favoriteContactsHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
+// 	favoriteContactsHStackView.axis = UILayoutConstraintAxisHorizontal;
+// 	favoriteContactsHStackView.alignment = UIStackViewAlignmentCenter;
+// 	favoriteContactsHStackView.distribution = UIStackViewDistributionEqualCentering;
+// 	favoriteContactsHStackView.spacing = 80;
+// 	favoriteContactsHStackView.clipsToBounds = TRUE;
 
-void initFavoriteContactsView(UIView *view) {
-	// favoriteContactsScrollView
+// 	[view addSubview:favoriteContactsHStackView];
 
-	favoriteContactsHStackView = [[UIStackView alloc] initWithFrame:view.bounds];
-	favoriteContactsHStackView.axis = UILayoutConstraintAxisHorizontal;
-	favoriteContactsHStackView.alignment = UIStackViewAlignmentCenter;
-	favoriteContactsHStackView.distribution = UIStackViewDistributionEqualCentering;
-	favoriteContactsHStackView.spacing = 80;
-	favoriteContactsHStackView.clipsToBounds = TRUE;
+// 	NSArray *contactFavorites = [[%c(CNFavorites) sharedInstance] entries];
 
-	[view addSubview:favoriteContactsHStackView];
+// 	for(CNFavoriteEntry *entry in contactFavorites){
+// 		VaonFavoriteContactsCell *cell = [[VaonFavoriteContactsCell alloc] initWithFrame:favoriteContactsHStackView.bounds favoriteEntry:entry];
+// 		[favoriteContactsHStackView addArrangedSubview:cell];
+// 	}
 
-	NSArray *contactFavorites = [[%c(CNFavorites) sharedInstance] entries];
+// 	favoriteContactsHStackView.translatesAutoresizingMaskIntoConstraints = false;
 
-	for(CNFavoriteEntry *entry in contactFavorites){
-		VaonFavoriteContactsCell *cell = [[VaonFavoriteContactsCell alloc] initWithFrame:favoriteContactsHStackView.bounds favoriteEntry:entry];
-		[favoriteContactsHStackView addArrangedSubview:cell];
-	}
+// 	[favoriteContactsHStackView.centerXAnchor constraintEqualToAnchor:view.centerXAnchor].active = TRUE;
+// 	[favoriteContactsHStackView.centerYAnchor constraintEqualToAnchor:view.centerYAnchor].active = TRUE;
+// }
 
-	favoriteContactsHStackView.translatesAutoresizingMaskIntoConstraints = false;
-
-	[favoriteContactsHStackView.centerXAnchor constraintEqualToAnchor:view.centerXAnchor].active = TRUE;
-	[favoriteContactsHStackView.centerYAnchor constraintEqualToAnchor:view.centerYAnchor].active = TRUE;
-}
-
-
+//initialize the base background blur view 
 void initBaseVaonView(UIView* view) {
 	vaonViewBackgroundColor = [UIColor colorNamed:@"clearColor"];
 	blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
@@ -548,12 +499,12 @@ void initBaseVaonView(UIView* view) {
 	vaonBlurView.frame = view.bounds;
 	vaonBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 	[view addSubview:vaonBlurView];
-
 }
 
+//updates battery information 
 void updateBattery(){
+	//access main loop
 	dispatch_async(dispatch_get_main_queue(), ^{
-
 		[batteryScrollView setContentSize:CGSizeMake(batteryHStackView.bounds.size.width, batteryHStackView.bounds.size.height)];
 		if(batteryHStackView.bounds.size.width > dockWidth){
 			batteryScrollView.contentInset = UIEdgeInsetsMake(0,batteryHStackView.bounds.size.width/4,0,0);
@@ -561,48 +512,46 @@ void updateBattery(){
 			batteryScrollView.contentInset = UIEdgeInsetsMake(0,0,0,0);
 		}
 
-		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
+		//update list of bluetooth devices
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
-
-
 
 		//loops through and finds new devices to add 
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
 
 			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
 			
-			if(![batteryHStackView.subviews containsObject:newCell]&&![deviceNames containsObject:newCell.deviceName]){
-	
-
+			//checks if devices are not already on the horizontal stack and the list of device names
+			if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.deviceName]){
+				//add all devices that are not the iPhone/iPad
 				if(![device isInternal]){
 					[subviewsToBeAdded addObject:newCell];			
 					[deviceIdentifiers addObject:[newCell.device identifier]];
 					[deviceNames addObject:[newCell.device name]];			
-
-				}else{
+				} else{
+					//displays the iphone if hideInternal is off
 					if(!hideInternal){
 						[subviewsToBeAdded addObject:newCell];
 						[deviceIdentifiers addObject:[newCell.device identifier]];
 						[deviceNames addObject:[newCell.device name]];			
 					}							
 				}
-
 			}
-
 		}
 
-		//actually add subviews to the hstack
+		//animate and add subviews to the hstack
 		for(VaonDeviceBatteryCell *subview in subviewsToBeAdded){
 
 			[batteryHStackView addArrangedSubview:subview];
-
 			subview.alpha = 0;
+			//fade in new devices
 			[UIView animateWithDuration:0.3 animations:^ {
 				subview.alpha = 1;
 
 			}
 			completion:^(BOOL finished) {
+				//when finished animate the outer layer to its percentage position
 				[subview newAnimateOuterLayerToCurrentPercentage];
 				[subviewsToBeAdded removeObject:subview];
 			}];	
@@ -628,6 +577,7 @@ void updateBattery(){
 				}else{
 					//remove subviews that aren't connected if keepDisconnectedDevices is turned off
 					subview.alpha = 1;
+					//fade out
 					[UIView animateWithDuration:0.3 animations:^ {
 						subview.alpha = 0;
 					}
@@ -640,23 +590,20 @@ void updateBattery(){
 			}
 
 			//updates outline color and percentage values 
-			if(keepDisconnectedDevices){		
+			if(keepDisconnectedDevices){	
 				[subview updateOutlineColor];
 				[subview updatePercentageColor];
 
+				//if the device is still connected update its battery data
 				if([subview.device isConnected]){
 					[subview updateDevicePercentage];
 					[subview updateDevicePercentageLabel];
-				}else{
-					//maybe use enum values
-
 				}
 			} else {
 				[subview updateDevicePercentageLabel];
 				[subview updateOutlineColor];
 				[subview updatePercentageColor];
 				[subview updateDevicePercentage];
-	
 			}
 		}
 
@@ -665,13 +612,14 @@ void updateBattery(){
 
 
 
+//fade in the base Vaon view
 void fadeViewIn(UIView *view, CGFloat duration){
 
+	//stop the timer if its still running from the last time the view faded in
 	if(delayedFadeInTimer!=nil){
 		[delayedFadeInTimer invalidate];
 	}
 	
-	NSLog(@"%s", "Vaon started fading in");
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 1;
 	} completion:^(BOOL finished) {
@@ -680,7 +628,7 @@ void fadeViewIn(UIView *view, CGFloat duration){
 				updateBattery();
 				for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
 					if(finished){
-							[subview newAnimateOuterLayerToCurrentPercentage];
+						[subview newAnimateOuterLayerToCurrentPercentage];
 					}
 				}
 			}
@@ -689,14 +637,11 @@ void fadeViewIn(UIView *view, CGFloat duration){
 	
 }
 
-void hideView(UIView *view){
-	view.alpha = 0;
-}
-
+//fade the base Vaon view out
 void fadeViewOut(UIView *view, CGFloat duration){
-	NSLog(@"%s", "Vaon Fade Out");
+	//animate all the outlines back to their original position
 	for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
-				[subview newAnimateOuterLayerToZero];
+		[subview newAnimateOuterLayerToZero];
 	}	
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 0;
@@ -706,14 +651,12 @@ void fadeViewOut(UIView *view, CGFloat duration){
 }
 
 
-
-
+//update battery information and displayed data
 %group BatteryModeUpdates
 
 
 %hook BCBatteryDevice
 
-//maybe add -(void)_postDidChangeNotification;, -(void)addDeviceChangeHandler:(/*^block*/id)arg1 withIdentifier:(id)arg2 ;, -(void)_queue_addDeviceChangeHandler:(/*^block*/id)arg1 withIdentifier:(id)arg2 ;
 	-(void)setCharging: (BOOL)arg1 {
 		%orig;
 		updateBattery();
@@ -736,10 +679,13 @@ void fadeViewOut(UIView *view, CGFloat duration){
  %end
 
  %hook BCBatteryDeviceController
+ 	//both methods are only supported in iOS 13
+
 	-(void)addDeviceChangeHandler:(id)arg1 withIdentifier:(id)arg2 {
 		%orig;
 		updateBattery();
 	}
+
 	-(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
 		%orig;
 		updateBattery();
@@ -766,11 +712,12 @@ void fadeViewOut(UIView *view, CGFloat duration){
 				if([selectedModule isEqual:@"battery"]){	
 					initBatteryView(vaonView);
 				}else if([selectedModule isEqual:@"favoriteContacts"]){
-					initFavoriteContactsView(vaonView);
+					// initFavoriteContactsView(vaonView);
 				}
 
 				[self addSubview:vaonView];
 
+				//vaon view constraints and placement
 				vaonView.translatesAutoresizingMaskIntoConstraints = false;
 				if(customVerticalOffsetEnabled){
 					[vaonView.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-customVerticalOffset].active = TRUE;
@@ -790,26 +737,24 @@ void fadeViewOut(UIView *view, CGFloat duration){
 				}
 
 				vaonViewIsInitialized = TRUE;
-
 			}	
 		}
 		
 		if(mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
 			SBApplication *frontApp = [(SpringBoard*)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
 			NSString *currentAppDisplayID = [frontApp bundleIdentifier];
+
+			//opening the app switcher from the home screen
 			if(currentAppDisplayID==nil){
 				fadeViewIn(vaonView, 0.3);
 			} else {
-			// 	//immediately hide and then fade in
 				if(stockHidden){
-					// dispatch_async(dispatch_get_main_queue(), ^{
+					//opening the app switcher from an app 
 					delayedFadeInTimer = [NSTimer scheduledTimerWithTimeInterval:0.3
 												target:self
 												selector:@selector(fadeInFromApp)
 												userInfo:nil
 												repeats:NO];	
-					// });
-					// fadeViewIn(vaonView, 0.3);
 				} 
 			}
 		}
@@ -820,23 +765,17 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		fadeViewIn(vaonView, 0.3);
 	}
 
-
-	-(void)movedToWindow:(id)arg1 {
-		%orig;
-		// fadeViewIn(vaonView, 2);
-	}
 %end
 
 
+//grid view hook
 %hook SBMainSwitcherViewController
-
 
 	-(void)viewDidLoad {
 		%orig;
 		mainAppSwitcherVC = self;
 		dockWidth = mainAppSwitcherVC.view.frame.size.width*0.943;	
 
-		
 		if(![selectedModule isEqual:@"none"]){	
 
 			//initializes vaon for grid mode 
@@ -849,11 +788,12 @@ void fadeViewOut(UIView *view, CGFloat duration){
 					if([selectedModule isEqual:@"battery"]){	
 						initBatteryView(vaonGridView);
 					}else if([selectedModule isEqual:@"favoriteContacts"]){
-						initFavoriteContactsView(vaonGridView);
+						// initFavoriteContactsView(vaonGridView);
 					}
 					
 					[self.view addSubview:vaonGridView];
 
+					//grid mode constraints and vaon view placement
 					vaonGridView.translatesAutoresizingMaskIntoConstraints = false;
 					if(customVerticalOffsetEnabled){
 						[vaonGridView.centerYAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:customVerticalOffset].active = TRUE;
@@ -880,9 +820,6 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	
 	-(void)switcherContentController:(id)arg1 setContainerStatusBarHidden:(BOOL)arg2 animationDuration:(double)arg3 {
 		if (arg2 == FALSE && ![selectedModule isEqual:@"none"]) {
-			// [UIView animateWithDuration:0.2 animations:^ {
-			// 	vaonView.alpha = 0;
-			// }];
 			fadeViewOut(vaonView, 0.2);
 		}
 		%orig;
@@ -900,10 +837,6 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 			//only for stock switcher
 			if(![appLayoutString containsString:@"appLayout: 0x0;"]){		
-				// [UIView animateWithDuration:0.2 animations:^ {
-				// 	vaonView.alpha = 0;
-				// }];
-				NSLog(@"%s", "Vaon hopst");
 				fadeViewOut(vaonView, 0.2);
 			}
 			if([eventLabel isEqual:@"FinalFluidSwitcherGestureAction"]&&mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
@@ -912,10 +845,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 				//from an app
 				//need to look into why this runs in stock mode
 				// fadeViewIn(vaonView, 2);
-
-
 			}
-			// }
 		}
 		%orig;
 	}
@@ -926,11 +856,6 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	//fade in and out for vaon in grid mode
 	-(void)_updateDisplayLayoutElementForLayoutState: (id)arg1 {
 		%orig;
-		// SBApplication *frontApp = [(SpringBoard*)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
-		// NSString *currentAppDisplayID = [frontApp bundleIdentifier];
-		// if(currentAppDisplayID != nil && !stockHidden){
-		// 	fadeViewOut(vaonGridView, 0.3);
-		// }
 		if(![selectedModule isEqual:@"none"]){
 			appSwitcherOpen = [self isAnySwitcherVisible];
 			if(currentSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
@@ -973,6 +898,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 %hook SBSwitcherAppSuggestionBannerView
 
+	//hide the iOS suggestion banner that interferes with Vaon
 	-(void)didMoveToWindow {
 		%orig;
 		if(hideSuggestionBanner){
@@ -984,6 +910,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 %hook SBFluidSwitcherItemContainer
 
+	//hide app titles 
 	- (void)setTitleOpacity:(double)arg1 {
 		if(hideAppTitles){
 			%orig(0);
@@ -1012,14 +939,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 %end
 
-// %hook SBHomeGestureSettings
-
-// 	- (void)setMinimumYDistanceForHomeOrAppSwitcher:(double)arg1 {
-// 	    %orig(0);
-// }
-
-// %end
-
+//displays vaon when no apps are open
 %hook SBFluidSwitcherAnimationSettings
 	-(void)setEmptySwitcherDismissDelay:(double)arg1 {
 		%orig(2);
@@ -1101,6 +1021,17 @@ void updateSettings(){
 		}
 	}
 
+	
 
 
 }
+/**
+Additional modules:
+favorite contacts or an option for recents
+device batteries
+favorited apps
+music player when you 
+countdown 
+airpod pro transparency and noise cancellation
+weather/AQI view that's similar to battery view
+**/
