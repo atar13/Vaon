@@ -258,6 +258,18 @@
 			<key>icon</key>
 			<string>images/github/githubIcon</string>
 		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Report an Issue</string>
+			<key>action</key>
+			<string>report</string>
+		</dict>
+		<dict>
+			<key>cellClass</key>
+			<string>ImageCell</string>
+		</dict>
 	</array>
 	<key>title</key>
 	<string>Vaon</string>

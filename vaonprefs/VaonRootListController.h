@@ -8,3 +8,16 @@
 
 @interface BatteryPreferencesController : PSListController
 @end
+
+@protocol PreferencesTableImageView
+-(id)initWithSpecifier:(PSSpecifier *)specifier;
+-(CGFloat)preferredHeightForWidth:(CGFloat)width;
+@end 
+
+@interface ImageCell : PSTableCell <PreferencesTableImageView> {
+    // UIImageView *_imageView;
+    // UIImage *_image;
+    	UILabel *_label;
+}
+@end
+

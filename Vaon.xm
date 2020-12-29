@@ -11,6 +11,9 @@
 
 HBPreferences *prefs;
 
+BOOL ios13;
+BOOL ios14;
+
 //main page preference variables
 BOOL isEnabled;
 NSString *switcherMode = nil;
@@ -65,7 +68,6 @@ BOOL stockHidden = TRUE;
 NSArray *connectedBluetoothDevices;
 NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
 NSMutableArray *deviceIdentifiers = [[NSMutableArray alloc] init];
-NSMutableArray *deviceGlyphs = [[NSMutableArray alloc] init];
 
 UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
 
@@ -217,7 +219,13 @@ NSTimer *delayedPulsateTimer = nil;
 		}
 
 		//initialize device image and its constraints
-        self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
+		if(ios14){
+			NSLog(@"%s", "Vaon: Initializing ios14 glyph");
+			self.deviceGlyphView = [[UIImageView alloc] initWithImage:[connectedDevice batteryWidgetGlyph]];
+		} else {
+			NSLog(@"%s", "Vaon: Initializing ios13 glyph");
+        	self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
+		}
 		self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
 		[self.deviceGlyphView.heightAnchor constraintEqualToConstant:self.cellWidth*0.6].active = TRUE;
 		
@@ -678,6 +686,10 @@ void fadeViewOut(UIView *view, CGFloat duration){
  
  %end
 
+ %end
+
+%group iOS13BatteryModeUpdates
+
  %hook BCBatteryDeviceController
  	//both methods are only supported in iOS 13
 
@@ -694,7 +706,6 @@ void fadeViewOut(UIView *view, CGFloat duration){
  %end
 
 %end
-
 
 %hook SBSwitcherAppSuggestionContentView
 
@@ -1014,10 +1025,25 @@ void updateSettings(){
 		currentSwitcherStyle = 0;
 	}
 
+	if(kCFCoreFoundationVersionNumber > 1750){
+		ios13 = false;
+		ios14 = true;
+	} else if(kCFCoreFoundationVersionNumber > 1600) {
+		ios13 = true;
+		ios14 = false;
+	} else {
+		ios13 = false;
+		ios14 = false;
+	}
+
 	if(isEnabled){
 		%init;
 		if([selectedModule isEqual:@"battery"]){
 			%init(BatteryModeUpdates);
+		}
+		if(ios13){
+			NSLog(@"%s", "Vaon: Initializing ios 13 battery update hooks");
+			%init(iOS13BatteryModeUpdates);
 		}
 	}
 

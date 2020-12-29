@@ -1,6 +1,6 @@
 #include "VaonRootListController.h"
 
-//maybe check if the user is going back to the previous value a speciefier was at before prompting the alert to repsring
+//maybe check if the user is going back to the previous value a specifier was at before prompting the alert to repsring
 //make a new HBPrefs
 HBPreferences *prefs;
 NSArray *rootPreferenceKeys;
@@ -133,6 +133,13 @@ NSArray *batteryPreferenceKeys;
 		completionHandler:nil];
 	}
 
+	-(void)report{
+		[[UIApplication sharedApplication] 
+			openURL:[NSURL URLWithString:@"https://github.com/atar13/Vaon/issues/new"] 
+			options:@{} 
+		completionHandler:nil];
+	}
+
 	- (void)viewWillAppear:(BOOL)animated {
 		[super viewWillAppear:animated];
 		UIBarButtonItem *respringButton = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:self action:@selector(askBeforeRespring)];
@@ -166,4 +173,27 @@ NSArray *batteryPreferenceKeys;
 
 
 
+@end
+
+
+@implementation ImageCell
+
+	-(id)initWithSpecifier:(PSSpecifier *)specifier {
+		self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell" specifier:specifier];
+		if(self){
+			_label = [[UILabel alloc] initWithFrame:[self frame]];
+			[_label setNumberOfLines:1];
+			[_label setText:@"You can use attributed text to make this prettier."];
+			// [_label setBackgroundColor:[UIColor clearColor]];
+			_label.textColor = [UIColor blackColor];
+
+			[self addSubview:_label];
+		}
+		return self;
+	}
+
+	- (CGFloat)preferredHeightForWidth:(CGFloat)width {
+	// Return a custom cell height.
+		return 60.f;
+	}
 @end
