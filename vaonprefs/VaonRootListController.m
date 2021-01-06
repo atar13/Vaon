@@ -181,19 +181,27 @@ NSArray *batteryPreferenceKeys;
 	-(id)initWithSpecifier:(PSSpecifier *)specifier {
 		self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell" specifier:specifier];
 		if(self){
-			_label = [[UILabel alloc] initWithFrame:[self frame]];
-			[_label setNumberOfLines:1];
-			[_label setText:@"You can use attributed text to make this prettier."];
-			// [_label setBackgroundColor:[UIColor clearColor]];
-			_label.textColor = [UIColor blackColor];
+		CGRect frame = CGRectMake(0, 2, [[UIScreen mainScreen] bounds].size.width, 60);
 
-			[self addSubview:_label];
+        NSString *customImagePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/VaonPrefs.bundle/images/email/emailIcon@3x.png"];
+		image = [[UIImage alloc] initWithContentsOfFile:customImagePath];
+		if(image == nil){
+			UILabel *label = [[UILabel alloc] initWithFrame:frame];
+			NSString *labelText = @"Image didn't load";
+			label.text = labelText;
+			[self addSubview:label];
+		} else {
+			imageView = [[UIImageView alloc] initWithImage:image];
+			imageView.contentMode = UIViewContentModeScaleAspectFit;
+			
+			[self addSubview:imageView];
+		}
 		}
 		return self;
 	}
 
 	- (CGFloat)preferredHeightForWidth:(CGFloat)width {
 	// Return a custom cell height.
-		return 60.f;
+		return 100.f;
 	}
 @end

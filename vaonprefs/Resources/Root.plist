@@ -4,6 +4,16 @@
 <dict>
 	<key>items</key>
 	<array>
+		<!-- <dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>headerCellClass</key>
+			<string>ImageCell</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+		</dict> -->
 		<dict>
 			<key>cell</key>
 			<string>PSSwitchCell</string>
@@ -190,7 +200,7 @@
 			<key>key</key>
 			<string>customVerticalOffsetEnabled</string>
 			<key>label</key>
-			<string>Enable Custom Vertical Offset from the Bottom</string>
+			<string>Enable Custom Vertical Offset</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -198,7 +208,7 @@
 			<key>default</key>
 			<integer>-80</integer>
 			<key>min</key>
-			<integer>-1200</integer>
+			<integer>-1000</integer>
 			<key>max</key>
 			<integer>100</integer>
 			<key>showValue</key>
@@ -265,10 +275,6 @@
 			<string>Report an Issue</string>
 			<key>action</key>
 			<string>report</string>
-		</dict>
-		<dict>
-			<key>cellClass</key>
-			<string>ImageCell</string>
 		</dict>
 	</array>
 	<key>title</key>

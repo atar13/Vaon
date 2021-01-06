@@ -86,26 +86,9 @@ NSTimer *delayedPulsateTimer = nil;
 
 	//keeps the outline at a static position when it finishes animating
     -(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag {
-		if(flag){
-			[CATransaction begin];
-			[CATransaction setValue:(id)kCFBooleanTrue
-							forKey:kCATransactionDisableActions];
-			self.cell.circleOutlineLayer.strokeEnd = [self.cell devicePercentageAsProgress];
-			[CATransaction commit];
-			if(pulsateChargingOutline){
-				// delayedPulsateTimer = [NSTimer scheduledTimerWithTimeInterval:1
-				// 							target:self
-				// 							selector:@selector(delayedPulsate)
-				// 							userInfo:nil
-				// 							repeats:NO];	
-				[self.cell pulsateOutline];
-			}
+		if(flag && pulsateChargingOutline){
+			[self.cell pulsateOutline];
 		}
-	}
-
-
-	-(void)delayedPulsate {
-		[self.cell pulsateOutline];
 	}
 
 @end
@@ -122,7 +105,7 @@ NSTimer *delayedPulsateTimer = nil;
 	
 	//when the animation finishes change the color and start another pulsate animation
     -(void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag {
-		if(flag&&[self.cell.device isCharging]&&pulsateChargingOutline){
+		if(flag && pulsateChargingOutline){
 			if([self.cell.device isCharging]){
 				[self.cell.circleOutlineLayer addAnimation:self.nextAnimation forKey:kCATransition];
 			}else{
@@ -223,7 +206,7 @@ NSTimer *delayedPulsateTimer = nil;
 			NSLog(@"%s", "Vaon: Initializing ios14 glyph");
 			self.deviceGlyphView = [[UIImageView alloc] initWithImage:[connectedDevice batteryWidgetGlyph]];
 		} else {
-			NSLog(@"%s", "Vaon: Initializing ios13 glyph");
+			// NSLog(@"%s", "Vaon: Initializing ios13 glyph");
         	self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
 		}
 		self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
@@ -366,6 +349,11 @@ NSTimer *delayedPulsateTimer = nil;
 		CAMediaTimingFunction *animationTimingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
 		self.percentageAnimation.timingFunction = animationTimingFunction;
 		[self.circleOutlineLayer addAnimation:self.percentageAnimation forKey:kCATransition];
+		[CATransaction begin];
+		[CATransaction setValue:(id)kCFBooleanTrue
+						forKey:kCATransactionDisableActions];
+		self.circleOutlineLayer.strokeEnd = [self devicePercentageAsProgress];
+		[CATransaction commit];
 	}
 
 	//returns outline position to zero
@@ -502,6 +490,7 @@ void initBaseVaonView(UIView* view) {
 	view.layer.cornerRadius = vaonViewCornerRadius;
 	view.alpha = 0;
 	view.backgroundColor = vaonViewBackgroundColor;
+	// view.userInteractionEnabled = FALSE;
 	
 	vaonBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
 	vaonBlurView.frame = view.bounds;
@@ -513,12 +502,24 @@ void initBaseVaonView(UIView* view) {
 void updateBattery(){
 	//access main loop
 	dispatch_async(dispatch_get_main_queue(), ^{
+
+		NSLog(@"Vaon Updating Battery Info");
 		[batteryScrollView setContentSize:CGSizeMake(batteryHStackView.bounds.size.width, batteryHStackView.bounds.size.height)];
 		if(batteryHStackView.bounds.size.width > dockWidth){
 			batteryScrollView.contentInset = UIEdgeInsetsMake(0,batteryHStackView.bounds.size.width/4,0,0);
 		}else{
 			batteryScrollView.contentInset = UIEdgeInsetsMake(0,0,0,0);
 		}
+
+		// CGFloat mainScreenWidth = [[UIScreen mainScreen] bounds].size.width;
+
+		// if( batteryScrollView.contentSize.width > mainScreenWidth){
+		// 	if(customSwitcherStyle == 2){
+		// 		vaonGridView.userInteractionEnabled = FALSE;
+		// 	} else {
+				// vaonView.userInteractionEnabled = FALSE;
+		// 	}
+		// }
 
 		//update list of bluetooth devices
 		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
@@ -530,6 +531,12 @@ void updateBattery(){
 
 			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
 			
+			NSLog(@"Vaon Device %@", newCell.device.name);
+
+			for(NSString *stuff in deviceNames){
+				NSLog(@"Vaon connected %@", stuff);
+			}
+
 			//checks if devices are not already on the horizontal stack and the list of device names
 			if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.deviceName]){
 				//add all devices that are not the iPhone/iPad
@@ -565,6 +572,9 @@ void updateBattery(){
 			}];	
 		}
 
+		//counts how many times a device exists and stores all the position in the array
+		//then remove all the indexes except the first one
+		
 		//update device view properties
 		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
 
@@ -578,7 +588,14 @@ void updateBattery(){
 								subview.device = device;
 								[subview updateOutlineColor];
 								[subview updatePercentageColor];
-								subview.deviceGlyphView = [[UIImageView alloc] initWithImage:subview.device.glyph];
+								// subview.deviceGlyphView = [[UIImageView alloc] initWithImage:subview.device.glyph];
+								// if(ios14){
+								// 	NSLog(@"%s", "Vaon: Initializing ios14 glyph");
+								// 	subview.deviceGlyphView = [[UIImageView alloc] initWithImage:[subview.device batteryWidgetGlyph]];
+								// } else {
+								// 	NSLog(@"%s", "Vaon: Initializing ios13 glyph");
+								// 	subview.deviceGlyphView = [[UIImageView alloc] initWithImage:subview.device.glyph];
+								// }
 							}
 						}
 					}
@@ -622,6 +639,9 @@ void updateBattery(){
 
 //fade in the base Vaon view
 void fadeViewIn(UIView *view, CGFloat duration){
+	stockHidden = FALSE;
+
+	NSLog(@"Vaon Fade In %i", stockHidden);
 
 	//stop the timer if its still running from the last time the view faded in
 	if(delayedFadeInTimer!=nil){
@@ -636,17 +656,22 @@ void fadeViewIn(UIView *view, CGFloat duration){
 				updateBattery();
 				for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
 					if(finished){
+						// dispatch_async(dispatch_get_main_queue(), ^{
 						[subview newAnimateOuterLayerToCurrentPercentage];
+						// });
 					}
 				}
 			}
 		}
 	}];	
-	
 }
 
 //fade the base Vaon view out
 void fadeViewOut(UIView *view, CGFloat duration){
+	stockHidden = TRUE;
+
+	NSLog(@"Vaon Fade Out %i", stockHidden);
+
 	//animate all the outlines back to their original position
 	for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
 		[subview newAnimateOuterLayerToZero];
@@ -654,7 +679,6 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	[UIView animateWithDuration:duration animations:^ {
 		view.alpha = 0;
 	} completion:^(BOOL finished) {
-		stockHidden = TRUE;
 	}];	
 }
 
@@ -662,6 +686,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 //update battery information and displayed data
 %group BatteryModeUpdates
 
+//have an if statement in each method to only trigger if the vaonView is not hidden
 
 %hook BCBatteryDevice
 
@@ -673,7 +698,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		updateBattery();
 		%orig;
 	}
-	-(void)setPercentCharge:(NSInteger)arg1 {
+	-(void)setPercentCharge:(long long)arg1 {
 		if(arg1!=0){
 			updateBattery();
 		}
@@ -686,22 +711,24 @@ void fadeViewOut(UIView *view, CGFloat duration){
  
  %end
 
- %end
+%end
 
 %group iOS13BatteryModeUpdates
 
  %hook BCBatteryDeviceController
  	//both methods are only supported in iOS 13
 
-	-(void)addDeviceChangeHandler:(id)arg1 withIdentifier:(id)arg2 {
-		%orig;
-		updateBattery();
-	}
+	// -(void)addDeviceChangeHandler:(id)arg1 withIdentifier:(id)arg2 {
+	// 	%orig;
+	// 	NSLog(@"Vaon added");
+	// 	updateBattery();
+	// }
 
-	-(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
-		%orig;
-		updateBattery();
-	}
+	// -(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
+	// 	%orig;
+	// 	NSLog(@"Vaon removed");
+	// 	updateBattery();
+	// }
 
  %end
 
@@ -731,7 +758,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 				//vaon view constraints and placement
 				vaonView.translatesAutoresizingMaskIntoConstraints = false;
 				if(customVerticalOffsetEnabled){
-					[vaonView.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-customVerticalOffset].active = TRUE;
+					[vaonView.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:customVerticalOffset].active = TRUE;
 				} else{
 					[vaonView.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-80].active = TRUE;
 				}
@@ -755,25 +782,17 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			SBApplication *frontApp = [(SpringBoard*)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
 			NSString *currentAppDisplayID = [frontApp bundleIdentifier];
 
+
 			//opening the app switcher from the home screen
-			if(currentAppDisplayID==nil){
+			if(currentAppDisplayID==nil && stockHidden){
 				fadeViewIn(vaonView, 0.3);
 			} else {
-				if(stockHidden){
-					//opening the app switcher from an app 
-					delayedFadeInTimer = [NSTimer scheduledTimerWithTimeInterval:0.3
-												target:self
-												selector:@selector(fadeInFromApp)
-												userInfo:nil
-												repeats:NO];	
-				} 
+				if(stockHidden){	
+					//TODO: look into this
+					fadeViewIn(vaonView, 0.3);
+				}
 			}
 		}
-	}
-
-	%new 
-	-(void)fadeInFromApp {
-		fadeViewIn(vaonView, 0.3);
 	}
 
 %end
@@ -829,37 +848,30 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	}
 
 	
-	-(void)switcherContentController:(id)arg1 setContainerStatusBarHidden:(BOOL)arg2 animationDuration:(double)arg3 {
-		if (arg2 == FALSE && ![selectedModule isEqual:@"none"]) {
-			fadeViewOut(vaonView, 0.2);
-		}
-		%orig;
-	}
-
 
 	//fade out vaon when entering an app layout from the switcher
 	-(void)_configureRequest:(id)arg1 forSwitcherTransitionRequest:(id)arg2 withEventLabel:(id)arg3 {
-		if(![selectedModule isEqual:@"none"] && customSwitcherStyle != 2){
-			NSString *switcherTransitionRequest = [[NSString alloc] initWithFormat:@"%@", arg2];
-			NSUInteger indexAfterAppLayout =  [switcherTransitionRequest rangeOfString: @"appLayout: "].location;
-			NSString *appLayoutString = [switcherTransitionRequest substringFromIndex:indexAfterAppLayout];
-			// FinalFluidSwitcherGestureAction
-			NSString *eventLabel = [[NSString alloc] initWithFormat:@"%@", arg3];
+		%orig;
 
-			//only for stock switcher
-			if(![appLayoutString containsString:@"appLayout: 0x0;"]){		
+		if(![selectedModule isEqual:@"none"] && customSwitcherStyle != 2){
+			// SBApplication *frontApp = [(SpringBoard*)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
+			// NSString *currentAppDisplayID = [frontApp bundleIdentifier];
+
+			// NSLog(@"%s %@", "Vaon 1", arg1);
+			// NSLog(@"Vaon 2 %@", arg2);
+			// NSLog(@"Vaon 3 %@", arg3);
+			// NSLog(@"Vaon 4 %@", arg2);
+
+			// if(currentAppDisplayID != nil){
+			// 	fadeViewOut(vaonView, 0.2);
+			// }
+
+			if(!stockHidden){
 				fadeViewOut(vaonView, 0.2);
 			}
-			if([eventLabel isEqual:@"FinalFluidSwitcherGestureAction"]&&mainAppSwitcherVC.sbActiveInterfaceOrientation==1){
-
-				//uncommenting this makes the animation begin before the view appears but doesnt fade in when the switcher is launched
-				//from an app
-				//need to look into why this runs in stock mode
-				// fadeViewIn(vaonView, 2);
-			}
 		}
-		%orig;
 	}
+
 
 
 
@@ -869,13 +881,19 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		%orig;
 		if(![selectedModule isEqual:@"none"]){
 			appSwitcherOpen = [self isAnySwitcherVisible];
-			if(currentSwitcherStyle==2&&self.sbActiveInterfaceOrientation==1){
+			if(currentSwitcherStyle == 2 && self.sbActiveInterfaceOrientation == 1){
 				if(!appSwitcherOpen){
 					fadeViewOut(vaonGridView, 0.3);
 				}else{
 					if(!(vaonGridView.alpha==1)){
 						fadeViewIn(vaonGridView, 0.3);
 					}
+				}
+			}
+
+			if(currentSwitcherStyle != 2 && self.sbActiveInterfaceOrientation == 1){
+				if(!stockHidden && !appSwitcherOpen){
+					fadeViewOut(vaonView, 0.3);
 				}
 			}
 		}
@@ -1038,12 +1056,13 @@ void updateSettings(){
 
 	if(isEnabled){
 		%init;
-		if([selectedModule isEqual:@"battery"]){
-			%init(BatteryModeUpdates);
-		}
+
 		if(ios13){
 			NSLog(@"%s", "Vaon: Initializing ios 13 battery update hooks");
 			%init(iOS13BatteryModeUpdates);
+			if([selectedModule isEqual:@"battery"]){
+				%init(BatteryModeUpdates);
+			}
 		}
 	}
 

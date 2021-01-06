@@ -15,9 +15,8 @@
 @end 
 
 @interface ImageCell : PSTableCell <PreferencesTableImageView> {
-    // UIImageView *_imageView;
-    // UIImage *_image;
-    	UILabel *_label;
+    UIImageView *imageView;
+    UIImage *image;
 }
 @end
 

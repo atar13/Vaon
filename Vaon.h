@@ -9,6 +9,8 @@
 -(long long)sbActiveInterfaceOrientation;
 -(BOOL)isMainSwitcherVisible;
 -(BOOL)isAnySwitcherVisible;
+-(void)switcherContentController:(id)arg1 setContainerStatusBarHidden:(BOOL)arg2 animationDuration:(double)arg3;
+-(void)_updateDisplayLayoutElementForLayoutState:(id)arg1 ;
 @end
 
 //works for iOS 13 and 14
@@ -62,6 +64,7 @@
 -(NSString *)groupName;
 -(unsigned long long)parts;
 -(BOOL)isFake;
+-(void)setPercentCharge:(long long)arg1;
 @end
 
 @interface BCBatteryDeviceController : NSObject
