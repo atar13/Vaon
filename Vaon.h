@@ -17,6 +17,7 @@
 @interface SBSwitcherAppSuggestionContentView : UIView
 @end
 
+
 //works for iOS 13
 // @interface SBSwitcherAppSuggestionContentViewController : UIViewController 
 // @end
@@ -65,6 +66,7 @@
 -(unsigned long long)parts;
 -(BOOL)isFake;
 -(void)setPercentCharge:(long long)arg1;
+-(void)updateScrollWidthAndTouchPassthrough;
 @end
 
 @interface BCBatteryDeviceController : NSObject

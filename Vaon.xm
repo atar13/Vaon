@@ -75,6 +75,9 @@ UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078
 NSTimer *delayedFadeInTimer = nil;
 NSTimer *delayedPulsateTimer = nil;
 
+
+BOOL firstSlideIn = false;
+
 //delegate for outline animation
 @implementation StrokeEndAnimationDelegate 
 
@@ -169,16 +172,16 @@ NSTimer *delayedPulsateTimer = nil;
         self.devicePercentageLabel.clipsToBounds = TRUE;
 
 		//view placement and constraints for background blur
-        [self.circleBackgroundVisualEffectView.contentView addSubview:self.devicePercentageLabel];
+        // [self.circleBackgroundVisualEffectView.contentView addSubview:self.devicePercentageLabel];
         self.circleBackgroundVisualEffectView.translatesAutoresizingMaskIntoConstraints = FALSE;
         [self.circleBackgroundVisualEffectView.widthAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
         [self.circleBackgroundVisualEffectView.heightAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
         [self addArrangedSubview:self.circleBackgroundVisualEffectView];
 
 		//view placement and constrains for battery percentage 
-        self.devicePercentageLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
-        [self.devicePercentageLabel.centerXAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerXAnchor].active = TRUE;
-        [self.devicePercentageLabel.centerYAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerYAnchor].active = TRUE;
+        // self.devicePercentageLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
+        // [self.devicePercentageLabel.centerXAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerXAnchor].active = TRUE;
+        // [self.devicePercentageLabel.centerYAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerYAnchor].active = TRUE;
 
 		//initialize circular outline path
         self.circleOutlinePath = [UIBezierPath bezierPathWithArcCenter:CGPointMake(self.circleBackgroundVisualEffectView.contentView.center.x+self.cellWidth/2,self.circleBackgroundVisualEffectView.contentView.center.y+self.cellWidth/2)
@@ -204,7 +207,8 @@ NSTimer *delayedPulsateTimer = nil;
 		//initialize device image and its constraints
 		if(ios14){
 			NSLog(@"%s", "Vaon: Initializing ios14 glyph");
-			self.deviceGlyphView = [[UIImageView alloc] initWithImage:[connectedDevice batteryWidgetGlyph]];
+			//COMMENT THIS BACK IN
+			// self.deviceGlyphView = [[UIImageView alloc] initWithImage:[connectedDevice batteryWidgetGlyph]];
 		} else {
 			// NSLog(@"%s", "Vaon: Initializing ios13 glyph");
         	self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
@@ -212,7 +216,12 @@ NSTimer *delayedPulsateTimer = nil;
 		self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
 		[self.deviceGlyphView.heightAnchor constraintEqualToConstant:self.cellWidth*0.6].active = TRUE;
 		
-        [self addArrangedSubview:self.deviceGlyphView];
+        [self addArrangedSubview:self.devicePercentageLabel];
+		[self.circleBackgroundVisualEffectView.contentView addSubview:self.deviceGlyphView];
+        self.deviceGlyphView.translatesAutoresizingMaskIntoConstraints = FALSE;
+        [self.deviceGlyphView.centerXAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerXAnchor].active = TRUE;
+        [self.deviceGlyphView.centerYAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerYAnchor].active = TRUE;
+
 		[self.circleBackgroundVisualEffectView setNeedsDisplay];
         self.deviceName = connectedDevice.name;
 
@@ -430,7 +439,7 @@ void initBatteryView(UIView *view){
 	[batteryScrollView addSubview:batteryHStackView];
 
 
-	if(!(currentSwitcherStyle == 2)){
+	if(!(currentSwitcherStyle == 2) && ios13){
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
 			VaonDeviceBatteryCell *cell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
 			if(![device isInternal]){
@@ -454,6 +463,23 @@ void initBatteryView(UIView *view){
 	batteryHStackView.translatesAutoresizingMaskIntoConstraints = FALSE;
 	[batteryHStackView.centerXAnchor constraintEqualToAnchor:batteryScrollView.centerXAnchor].active = TRUE;
 	[batteryHStackView.centerYAnchor constraintEqualToAnchor:batteryScrollView.centerYAnchor].active = TRUE;
+
+	if(batteryHStackView.bounds.size.width > dockWidth){
+			batteryScrollView.scrollEnabled = TRUE;
+				if(currentSwitcherStyle == 2){
+					vaonGridView.userInteractionEnabled = TRUE;
+				}else {
+					// vaonView.userInteractionEnabled = TRUE;
+				}
+			}else{
+				batteryScrollView.scrollEnabled = FALSE;
+
+				if(currentSwitcherStyle == 2){
+					vaonGridView.userInteractionEnabled = FALSE;
+				}else {
+					// vaonView.userInteractionEnabled = FALSE;
+				}
+		}
 }
 
 // void initFavoriteContactsView(UIView *view) {
@@ -503,7 +529,7 @@ void updateBattery(){
 	//access main loop
 	dispatch_async(dispatch_get_main_queue(), ^{
 
-		NSLog(@"Vaon Updating Battery Info");
+		NSLog(@"Vaon iOS 13 Updating Battery Info");
 		[batteryScrollView setContentSize:CGSizeMake(batteryHStackView.bounds.size.width, batteryHStackView.bounds.size.height)];
 		if(batteryHStackView.bounds.size.width > dockWidth){
 			batteryScrollView.contentInset = UIEdgeInsetsMake(0,batteryHStackView.bounds.size.width/4,0,0);
@@ -531,11 +557,8 @@ void updateBattery(){
 
 			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
 			
-			NSLog(@"Vaon Device %@", newCell.device.name);
+			// NSLog(@"Vaon Device %@", newCell.device.name);
 
-			for(NSString *stuff in deviceNames){
-				NSLog(@"Vaon connected %@", stuff);
-			}
 
 			//checks if devices are not already on the horizontal stack and the list of device names
 			if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.deviceName]){
@@ -633,52 +656,260 @@ void updateBattery(){
 		}
 
 	}); 
+
+	// NSLog(@"Vaon print %f, %f", batteryHStackView.bounds.size.width, dockWidth);
+	// if(batteryHStackView.bounds.size.width > dockWidth){
+	// 		batteryScrollView.scrollEnabled = TRUE;
+	// 			if(currentSwitcherStyle == 2){
+	// 				vaonGridView.userInteractionEnabled = TRUE;
+	// 			}else {
+	// 				vaonView.userInteractionEnabled = TRUE;
+	// 			}
+	// 		}else{
+	// 			batteryScrollView.scrollEnabled = FALSE;
+
+	// 			if(currentSwitcherStyle == 2){
+	// 				vaonGridView.userInteractionEnabled = FALSE;
+	// 			}else {
+	// 				NSLog(@"Vaon print passthrough on");
+	// 				vaonView.userInteractionEnabled = FALSE;
+	// 			}
+	// 	}
+}
+
+
+void iOS14UpdateBattery(){
+	NSLog(@"Vaon iOS 14 Battery Updates");
+
+		// dispatch_async(dispatch_get_main_queue(), ^{
+
+		[batteryScrollView setContentSize:CGSizeMake(batteryHStackView.bounds.size.width, batteryHStackView.bounds.size.height)];
+
+		if(batteryHStackView.bounds.size.width > dockWidth){
+			batteryScrollView.contentInset = UIEdgeInsetsMake(0,batteryHStackView.bounds.size.width/4,0,0);
+		}else{
+			batteryScrollView.contentInset = UIEdgeInsetsMake(0,0,0,0);
+		}
+
+
+		//update list of bluetooth devices
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
+		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
+
+		//loops through and finds new devices to add 
+		for(BCBatteryDevice *device in connectedBluetoothDevices){
+
+			// if(device != nil || [device.name isEqual:@"(null)"] || [device isEqual:@"(null)"]){
+			if(device || device != nil){
+			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
+			
+			NSLog(@"Vaon contains %i", ![deviceNames containsObject:newCell.device.name]);
+
+			//checks if devices are not already on the horizontal stack and the list of device names
+			if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.device.name]){
+				//add all devices that are not the iPhone/iPad
+				if(![device isInternal]){
+					[subviewsToBeAdded addObject:newCell];			
+					[deviceIdentifiers addObject:[newCell.device identifier]];
+					[deviceNames addObject:[newCell.device name]];			
+				} else{
+					//displays the iphone if hideInternal is off
+					if(!hideInternal){
+						[subviewsToBeAdded addObject:newCell];
+						[deviceIdentifiers addObject:[newCell.device identifier]];
+						[deviceNames addObject:[newCell.device name]];			
+					}							
+				}
+			}
+			}
+		}
+
+
+
+		//animate and add subviews to the hstack
+		for(VaonDeviceBatteryCell *subview in subviewsToBeAdded){
+
+			if(subview.device || subview.device != nil){
+				[batteryHStackView addArrangedSubview:subview];
+				subview.alpha = 0;
+				//fade in new devices
+				// subview.frame = CGRectMake(subview.frame.origin.x, -200 , subview.frame.size.width, subview.frame.size.height);
+				[UIView animateWithDuration:0.3 animations:^ {
+					subview.alpha = 1;
+					// subview.frame = CGRectMake(subview.frame.origin.x, subview.frame.origin.y, subview.frame.size.width, subview.frame.size.height);
+
+				}
+				completion:^(BOOL finished) {
+					//when finished animate the outer layer to its percentage position
+					[subview newAnimateOuterLayerToCurrentPercentage];
+					[subviewsToBeAdded removeObject:subview];
+				}];	
+			}
+		}
+
+
+
+		//update device view properties
+		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
+
+			// for(NSString *name in deviceNames){
+			// 	if ([subview.device.name isEqual:name]){
+			// 		[UIView animateWithDuration:0.3 animations:^ {
+			// 			subview.alpha = 0;
+			// 		}
+			// 		completion:^(BOOL finished) {
+			// 			[subview removeFromSuperview];
+			// 			[deviceIdentifiers removeObject:[subview.device identifier]];
+			// 			NSUInteger index = [deviceNames indexOfObject:name];
+
+			// 			if(index > -1 && index < [deviceNames count]){
+			// 				[deviceNames removeObjectAtIndex:index];			
+			// 			}
+			// 		}];	
+			// 	}
+			// }
+
+
+			// if(subview.device || subview.device != nil){
+			//checks if the device is not connected anymore 
+			if((![connectedBluetoothDevices containsObject:subview.device] && ![subview.device isConnected]) || subview.device == nil ){
+				//if keep is turned on, keep the device and just update its properties
+				if(keepDisconnectedDevices){
+					if(subview.device == nil){
+						for(BCBatteryDevice *device in connectedBluetoothDevices){
+							if([subview.deviceName isEqual:[device name]]){
+								subview.device = device;
+								[subview updateOutlineColor];
+								[subview updatePercentageColor];
+							}
+						}
+					}
+				} else{
+					//remove subviews that aren't connected if keepDisconnectedDevices is turned off
+					subview.alpha = 1;
+					//fade out
+					[UIView animateWithDuration:0.3 animations:^ {
+						subview.alpha = 0;
+					}
+					completion:^(BOOL finished) {
+						[subview removeFromSuperview];
+						[deviceIdentifiers removeObject:[subview.device identifier]];
+						[deviceNames removeObject:subview.deviceName];			
+					}];	
+				}
+			}
+
+			// NSLog(@"Vaon Device Name: %@ Percentage: %lld", subview.device, subview.device.percentCharge);
+
+			//updates outline color and percentage values 
+			if(keepDisconnectedDevices){	
+				[subview updateOutlineColor];
+				[subview updatePercentageColor];
+
+				//if the device is still connected update its battery data
+				if([subview.device isConnected]){
+					[subview updateDevicePercentage];
+					[subview updateDevicePercentageLabel];
+				}
+			} else {
+				[subview updateDevicePercentageLabel];
+				[subview updateOutlineColor];
+				[subview updatePercentageColor];
+				[subview updateDevicePercentage];
+			}
+			// }
+		}
+
+	// }); 
 }
 
 
 
 //fade in the base Vaon view
 void fadeViewIn(UIView *view, CGFloat duration){
-	stockHidden = FALSE;
+	// stockHidden = TRUE;
 
 	NSLog(@"Vaon Fade In %i", stockHidden);
 
-	//stop the timer if its still running from the last time the view faded in
-	if(delayedFadeInTimer!=nil){
-		[delayedFadeInTimer invalidate];
-	}
-	
+
+	CGRect mainScreen = [[UIScreen mainScreen] bounds];
+
+
 	[UIView animateWithDuration:duration animations:^ {
+		if(firstSlideIn){
+			if(customVerticalOffsetEnabled){
+				view.frame = CGRectMake(view.frame.origin.x, mainScreen.size.height + customVerticalOffset - view.frame.size.height, view.frame.size.width, view.frame.size.height);
+			} else {
+				view.frame = CGRectMake(view.frame.origin.x, mainScreen.size.height - 25 - view.frame.size.height, view.frame.size.width, view.frame.size.height);
+			}
+		}
+
 		view.alpha = 1;
+
 	} completion:^(BOOL finished) {
 		if(view.alpha==1){
 			if([selectedModule isEqual:@"battery"]){
-				updateBattery();
+				if(ios13){
+					updateBattery();
+				}
+				if(ios14){
+					iOS14UpdateBattery();
+				}
 				for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
 					if(finished){
-						// dispatch_async(dispatch_get_main_queue(), ^{
 						[subview newAnimateOuterLayerToCurrentPercentage];
-						// });
+						stockHidden = FALSE;
 					}
 				}
 			}
 		}
+		firstSlideIn = true;	
+		NSLog(@"Vaon print %f, %f", batteryHStackView.bounds.size.width, dockWidth);
+		if(batteryHStackView.bounds.size.width > dockWidth){
+			batteryScrollView.scrollEnabled = TRUE;
+				if(currentSwitcherStyle == 2){
+					vaonGridView.userInteractionEnabled = TRUE;
+				}else {
+					// vaonView.userInteractionEnabled = TRUE;
+					// batteryScrollView.userInteractionEnabled = TRUE;
+				}
+			}else{
+				batteryScrollView.scrollEnabled = FALSE;
+
+				if(currentSwitcherStyle == 2){
+					vaonGridView.userInteractionEnabled = FALSE;
+				}else {
+					NSLog(@"Vaon print passthrough on %i", vaonView.userInteractionEnabled);
+					// vaonView.userInteractionEnabled = TRUE;
+					// batteryScrollView.userInteractionEnabled = FALSE;
+				}
+		}
+
 	}];	
 }
 
 //fade the base Vaon view out
 void fadeViewOut(UIView *view, CGFloat duration){
-	stockHidden = TRUE;
-
 	NSLog(@"Vaon Fade Out %i", stockHidden);
+
+
 
 	//animate all the outlines back to their original position
 	for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
 		[subview newAnimateOuterLayerToZero];
 	}	
+	// [view.centerYAnchor constraintEqualToAnchor:view.bottomAnchor constant:200].active = TRUE;
+	CGRect mainScreen = [[UIScreen mainScreen] bounds];
+
 	[UIView animateWithDuration:duration animations:^ {
+		// [view layoutIfNeeded];
+		view.frame = CGRectMake(view.frame.origin.x, mainScreen.size.height + 200, view.frame.size.width, view.frame.size.height);
+
 		view.alpha = 0;
+		
 	} completion:^(BOOL finished) {
+			stockHidden = TRUE;
 	}];	
 }
 
@@ -692,21 +923,55 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 	-(void)setCharging: (BOOL)arg1 {
 		%orig;
-		updateBattery();
+		if(ios13){
+			updateBattery();
+		}
+		[self updateScrollWidthAndTouchPassthrough];
+
 	}
 	-(void)setBatterSaveModeActive:(BOOL)arg1 {
-		updateBattery();
+		if(ios13){
+			updateBattery();
+		}
+		[self updateScrollWidthAndTouchPassthrough];
+
 		%orig;
 	}
 	-(void)setPercentCharge:(long long)arg1 {
 		if(arg1!=0){
-			updateBattery();
+			if(ios13){
+				updateBattery();
+			}		
 		}
 		%orig;
 	}
 	-(void)dealloc {
 		%orig;
-		updateBattery();
+		if(ios13){
+			updateBattery();
+		}
+	}
+
+	%new
+	-(void)updateScrollWidthAndTouchPassthrough {
+		if(batteryHStackView.bounds.size.width > dockWidth){
+			batteryScrollView.scrollEnabled = TRUE;
+				if(currentSwitcherStyle == 2){
+					vaonGridView.userInteractionEnabled = TRUE;
+				}else {
+					// vaonView.userInteractionEnabled = TRUE;
+				}
+			}else{
+				batteryScrollView.scrollEnabled = FALSE;
+
+				if(currentSwitcherStyle == 2){
+					vaonGridView.userInteractionEnabled = FALSE;
+				}else {
+					// vaonView.userInteractionEnabled = FALSE;
+				}
+		}
+		NSLog(@"Vaon updateScrollWidthAndTouchPassthrough %i", vaonView.userInteractionEnabled);
+
 	}
  
  %end
@@ -718,17 +983,17 @@ void fadeViewOut(UIView *view, CGFloat duration){
  %hook BCBatteryDeviceController
  	//both methods are only supported in iOS 13
 
-	// -(void)addDeviceChangeHandler:(id)arg1 withIdentifier:(id)arg2 {
-	// 	%orig;
-	// 	NSLog(@"Vaon added");
-	// 	updateBattery();
-	// }
+	-(void)addDeviceChangeHandler:(id)arg1 withIdentifier:(id)arg2 {
+		%orig;
+		NSLog(@"Vaon added");
+		updateBattery();
+	}
 
-	// -(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
-	// 	%orig;
-	// 	NSLog(@"Vaon removed");
-	// 	updateBattery();
-	// }
+	-(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
+		%orig;
+		NSLog(@"Vaon removed");
+		updateBattery();
+	}
 
  %end
 
@@ -745,6 +1010,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 				vaonView = [[UIView alloc] init];
 
+
 				initBaseVaonView(vaonView);
 
 				if([selectedModule isEqual:@"battery"]){	
@@ -753,14 +1019,19 @@ void fadeViewOut(UIView *view, CGFloat duration){
 					// initFavoriteContactsView(vaonView);
 				}
 
+
 				[self addSubview:vaonView];
+
+
+				CGFloat vaonViewHeight = vaonView.frame.size.height;
 
 				//vaon view constraints and placement
 				vaonView.translatesAutoresizingMaskIntoConstraints = false;
 				if(customVerticalOffsetEnabled){
-					[vaonView.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:customVerticalOffset].active = TRUE;
+					[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:vaonViewHeight+customVerticalOffset].active = TRUE;
 				} else{
-					[vaonView.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-80].active = TRUE;
+					[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-25].active = TRUE;
+					// [vaonGridView.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-80].active = TRUE;
 				}
 				[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = TRUE;
 				if(customWidthEnabled){
@@ -783,16 +1054,24 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			NSString *currentAppDisplayID = [frontApp bundleIdentifier];
 
 
-			//opening the app switcher from the home screen
-			if(currentAppDisplayID==nil && stockHidden){
-				fadeViewIn(vaonView, 0.3);
-			} else {
-				if(stockHidden){	
-					//TODO: look into this
-					fadeViewIn(vaonView, 0.3);
+
+
+			if(self.window != nil){
+				// opening the app switcher from the home screen
+				if(currentAppDisplayID==nil && stockHidden){
+					fadeViewIn(vaonView, 0.4);
+				} else {
+					if(stockHidden){	
+						//TODO: look into this
+						batteryHStackView.userInteractionEnabled = FALSE;
+						batteryScrollView.userInteractionEnabled = FALSE;
+
+						fadeViewIn(vaonView, 0.4);
+					}
 				}
 			}
 		}
+
 	}
 
 %end
@@ -823,12 +1102,15 @@ void fadeViewOut(UIView *view, CGFloat duration){
 					
 					[self.view addSubview:vaonGridView];
 
+					CGFloat vaonViewHeight = vaonView.frame.size.height;
+
+
 					//grid mode constraints and vaon view placement
 					vaonGridView.translatesAutoresizingMaskIntoConstraints = false;
 					if(customVerticalOffsetEnabled){
-						[vaonGridView.centerYAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:customVerticalOffset].active = TRUE;
+						[vaonGridView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:vaonViewHeight+customVerticalOffset].active = TRUE;
 					} else{
-						[vaonGridView.centerYAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-80].active = TRUE;
+						[vaonGridView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-25].active = TRUE;
 					}
 					[vaonGridView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = TRUE;
 					if(customWidthEnabled){
@@ -862,12 +1144,9 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			// NSLog(@"Vaon 3 %@", arg3);
 			// NSLog(@"Vaon 4 %@", arg2);
 
-			// if(currentAppDisplayID != nil){
-			// 	fadeViewOut(vaonView, 0.2);
-			// }
 
 			if(!stockHidden){
-				fadeViewOut(vaonView, 0.2);
+				fadeViewOut(vaonView, 0.5);
 			}
 		}
 	}
@@ -1043,6 +1322,8 @@ void updateSettings(){
 		currentSwitcherStyle = 0;
 	}
 
+
+
 	if(kCFCoreFoundationVersionNumber > 1750){
 		ios13 = false;
 		ios14 = true;
@@ -1054,16 +1335,24 @@ void updateSettings(){
 		ios14 = false;
 	}
 
+
+	// ios13 = false;
+	// ios14 = true;
+
 	if(isEnabled){
 		%init;
 
-		if(ios13){
-			NSLog(@"%s", "Vaon: Initializing ios 13 battery update hooks");
-			%init(iOS13BatteryModeUpdates);
-			if([selectedModule isEqual:@"battery"]){
-				%init(BatteryModeUpdates);
+		if([selectedModule isEqual:@"battery"]){
+			%init(BatteryModeUpdates);
+		
+			if(ios13){
+				NSLog(@"%s", "Vaon: Initializing ios 13 battery update hooks");
+				%init(iOS13BatteryModeUpdates);
+
 			}
 		}
+		// NSLog(@"%s", "Vaon: Initializing ios 14 battery update hooks");
+
 	}
 
 	
