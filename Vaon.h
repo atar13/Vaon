@@ -188,3 +188,7 @@
 @interface SBApplication
 -(id)bundleIdentifier;
 @end
+
+
+// @interface UIBlurEffect : UIVisualEffect
+// @end
