@@ -436,7 +436,6 @@ void initBatteryView(UIView *view){
 	batteryHStackView.alignment = UIStackViewAlignmentCenter;
 	batteryHStackView.distribution = UIStackViewDistributionFill;
 	batteryHStackView.spacing = 30;
-	batteryHStackView.clipsToBounds = TRUE;
 
 	//gather bluetooth battery information
 	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
