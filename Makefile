@@ -1,8 +1,8 @@
 ARCHS = arm64 arm64e
-SDKVERSION = 14.4
-SYSROOT = $(THEOS)/sdks/iPhoneOS14.4.sdk
+SDKVERSION = 14.3
+SYSROOT = $(THEOS)/sdks/iPhoneOS14.3.sdk
 
-TARGET := iphone:clang:13.4:latest
+TARGET := iphone:clang:13.0:latest
 INSTALL_TARGET_PROCESSES = SpringBoard
 
 

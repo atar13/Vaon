@@ -210,13 +210,18 @@ BOOL firstSlideIn = false;
 		if(ios14){
 			NSLog(@"%s", "Vaon: Initializing ios14 glyph");
 			//COMMENT THIS BACK IN
-			// self.deviceGlyphView = [[UIImageView alloc] initWithImage:[connectedDevice batteryWidgetGlyph]];
+			self.deviceGlyphView = [[UIImageView alloc] initWithImage:[connectedDevice batteryWidgetGlyph]];
+			self.deviceGlyphView.image = [self.deviceGlyphView.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+			[self.deviceGlyphView setTintColor:[UIColor whiteColor]];
 		} else {
 			// NSLog(@"%s", "Vaon: Initializing ios13 glyph");
         	self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
 		}
 		self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
 		[self.deviceGlyphView.heightAnchor constraintEqualToConstant:self.cellWidth*0.6].active = TRUE;
+		if(ios14) {
+			self.deviceGlyphView.transform = CGAffineTransformMake(1, 0, 0, 1, 0 ,0);
+		}
 		
         [self addArrangedSubview:self.devicePercentageLabel];
 		[self.circleBackgroundVisualEffectView.contentView addSubview:self.deviceGlyphView];
@@ -704,26 +709,27 @@ void iOS14UpdateBattery(){
 
 			// if(device != nil || [device.name isEqual:@"(null)"] || [device isEqual:@"(null)"]){
 			if(device || device != nil){
-			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
-			
-			NSLog(@"Vaon contains %i", ![deviceNames containsObject:newCell.device.name]);
+				VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
+				
+				// NSLog(@"Vaon contains %i", ![deviceNames containsObject:newCell.device.name]);
+				NSLog(@"Vaon %@", device.name);
 
-			//checks if devices are not already on the horizontal stack and the list of device names
-			if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.device.name]){
-				//add all devices that are not the iPhone/iPad
-				if(![device isInternal]){
-					[subviewsToBeAdded addObject:newCell];			
-					[deviceIdentifiers addObject:[newCell.device identifier]];
-					[deviceNames addObject:[newCell.device name]];			
-				} else{
-					//displays the iphone if hideInternal is off
-					if(!hideInternal){
+				//checks if devices are not already on the horizontal stack and the list of device names
+				if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.device.name]){
+					//add all devices that are not the iPhone/iPad
+					if(![device isInternal]){
 						[subviewsToBeAdded addObject:newCell];
 						[deviceIdentifiers addObject:[newCell.device identifier]];
-						[deviceNames addObject:[newCell.device name]];			
-					}							
+						[deviceNames addObject:[newCell.device name]];
+					} else{
+						//displays the iphone if hideInternal is off
+						if(!hideInternal){
+							[subviewsToBeAdded addObject:newCell];
+							[deviceIdentifiers addObject:[newCell.device identifier]];
+							[deviceNames addObject:[newCell.device name]];
+						}
+					}
 				}
-			}
 			}
 		}
 
@@ -755,6 +761,17 @@ void iOS14UpdateBattery(){
 		//update device view properties
 		for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
 
+			if(!subview.device) {
+				for(BCBatteryDevice *device in connectedBluetoothDevices) {
+					if([device.name isEqual:subview.deviceName]) {
+						subview.device = device;
+
+						// Didn't fix glyph not displaying correct device issue
+						// subview.deviceGlyphView = [[UIImageView alloc] initWithImage:[device batteryWidgetGlyph]];
+					}
+				}
+			}
+
 			// for(NSString *name in deviceNames){
 			// 	if ([subview.device.name isEqual:name]){
 			// 		[UIView animateWithDuration:0.3 animations:^ {
@@ -775,7 +792,7 @@ void iOS14UpdateBattery(){
 
 			// if(subview.device || subview.device != nil){
 			//checks if the device is not connected anymore 
-			if((![connectedBluetoothDevices containsObject:subview.device] && ![subview.device isConnected]) || subview.device == nil ){
+			if((![connectedBluetoothDevices containsObject:subview.device] && ![subview.device isConnected])){
 				//if keep is turned on, keep the device and just update its properties
 				if(keepDisconnectedDevices){
 					if(subview.device == nil){
@@ -789,7 +806,7 @@ void iOS14UpdateBattery(){
 					}
 				} else{
 					//remove subviews that aren't connected if keepDisconnectedDevices is turned off
-					subview.alpha = 1;
+					// subview.alpha = 1;
 					//fade out
 					[UIView animateWithDuration:0.3 animations:^ {
 						subview.alpha = 0;
