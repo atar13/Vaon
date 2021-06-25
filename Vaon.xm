@@ -212,7 +212,7 @@ BOOL firstSlideIn = false;
 			//COMMENT THIS BACK IN
 			self.deviceGlyphView = [[UIImageView alloc] initWithImage:[connectedDevice batteryWidgetGlyph]];
 			self.deviceGlyphView.image = [self.deviceGlyphView.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-			[self.deviceGlyphView setTintColor:[UIColor whiteColor]];
+			[self.deviceGlyphView setTintColor:[UIColor labelColor]];
 		} else {
 			// NSLog(@"%s", "Vaon: Initializing ios13 glyph");
         	self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
