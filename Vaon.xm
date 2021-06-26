@@ -20,8 +20,11 @@ BOOL ios14;
 BOOL isEnabled;
 NSString *switcherMode = nil;
 NSString *selectedModule = nil;
+BOOL hideBackground;
 BOOL hideAppTitles;
 BOOL hideSuggestionBanner;
+BOOL enableDelay;
+CGFloat fadeInDelay;
 BOOL customHeightEnabled;
 CGFloat customHeight;
 BOOL customWidthEnabled;
@@ -61,6 +64,7 @@ BOOL vaonViewIsInitialized = FALSE;
 
 // long long sbAppSwitcherOrientation;
 SBMainSwitcherViewController *mainAppSwitcherVC;
+SBSwitcherAppSuggestionContentView *switcherContentView;
 long long customSwitcherStyle;
 long long currentSwitcherStyle;
 BOOL appSwitcherOpen = FALSE;
@@ -208,13 +212,11 @@ BOOL firstSlideIn = false;
 
 		//initialize device image and its constraints
 		if(ios14){
-			NSLog(@"%s", "Vaon: Initializing ios14 glyph");
 			//COMMENT THIS BACK IN
 			self.deviceGlyphView = [[UIImageView alloc] initWithImage:[connectedDevice batteryWidgetGlyph]];
 			self.deviceGlyphView.image = [self.deviceGlyphView.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
 			[self.deviceGlyphView setTintColor:[UIColor labelColor]];
 		} else {
-			// NSLog(@"%s", "Vaon: Initializing ios13 glyph");
         	self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
 		}
 		self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
@@ -470,7 +472,7 @@ void initBatteryView(UIView *view){
 	[batteryHStackView.centerXAnchor constraintEqualToAnchor:batteryScrollView.centerXAnchor].active = TRUE;
 	[batteryHStackView.centerYAnchor constraintEqualToAnchor:batteryScrollView.centerYAnchor].active = TRUE;
 
-	if(batteryHStackView.bounds.size.width > dockWidth){
+	if((customWidthEnabled && batteryHStackView.bounds.size.width > customWidth) || batteryHStackView.bounds.size.width > dockWidth){
 			batteryScrollView.scrollEnabled = TRUE;
 				if(currentSwitcherStyle == 2){
 					vaonGridView.userInteractionEnabled = TRUE;
@@ -524,10 +526,50 @@ void initBaseVaonView(UIView* view) {
 	view.backgroundColor = vaonViewBackgroundColor;
 	// view.userInteractionEnabled = FALSE;
 	
+	// if(hideBackground) {
+	// 	vaonBlurView = [[UIVisualEffectView alloc] initWithEffect:nil];
+	// } else {
 	vaonBlurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+	// }
 	vaonBlurView.frame = view.bounds;
 	vaonBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+	if(hideBackground) {
+		vaonBlurView.effect = nil;
+	}
 	[view addSubview:vaonBlurView];
+}
+
+void updateScrollWidthAndTouchPassthrough() {
+	NSLog(@"Vaon updateScrollWidthAndTouchPassthrough %f", batteryHStackView.bounds.size.width);
+	NSLog(@"Vaon updateScrollWidthAndTouchPassthrough %f", customWidth);
+	if((customWidthEnabled && batteryHStackView.bounds.size.width > customWidth) || batteryHStackView.bounds.size.width > dockWidth){
+		batteryScrollView.scrollEnabled = TRUE;
+			if(currentSwitcherStyle == 2){
+				vaonGridView.userInteractionEnabled = TRUE;
+			}else {
+				vaonView.userInteractionEnabled = TRUE;
+				batteryScrollView.userInteractionEnabled = TRUE;
+				batteryHStackView.userInteractionEnabled = TRUE;
+				if(switcherContentView) {
+					switcherContentView.userInteractionEnabled = TRUE;	
+				}
+			}
+		}else{
+			batteryScrollView.scrollEnabled = FALSE;
+
+			if(currentSwitcherStyle == 2){
+				vaonGridView.userInteractionEnabled = FALSE;
+			}else {
+				vaonView.userInteractionEnabled = FALSE;
+				batteryScrollView.userInteractionEnabled = FALSE;
+				batteryHStackView.userInteractionEnabled = FALSE;
+				if(switcherContentView) {
+					switcherContentView.userInteractionEnabled = FALSE;	
+				}
+			}
+	}
+	NSLog(@"Vaon updateScrollWidthAndTouchPassthrough %i", vaonView.userInteractionEnabled);
+
 }
 
 //updates battery information 
@@ -563,7 +605,6 @@ void updateBattery(){
 
 			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
 			
-			// NSLog(@"Vaon Device %@", newCell.device.name);
 
 
 			//checks if devices are not already on the horizontal stack and the list of device names
@@ -619,10 +660,8 @@ void updateBattery(){
 								[subview updatePercentageColor];
 								// subview.deviceGlyphView = [[UIImageView alloc] initWithImage:subview.device.glyph];
 								// if(ios14){
-								// 	NSLog(@"%s", "Vaon: Initializing ios14 glyph");
 								// 	subview.deviceGlyphView = [[UIImageView alloc] initWithImage:[subview.device batteryWidgetGlyph]];
 								// } else {
-								// 	NSLog(@"%s", "Vaon: Initializing ios13 glyph");
 								// 	subview.deviceGlyphView = [[UIImageView alloc] initWithImage:subview.device.glyph];
 								// }
 							}
@@ -663,7 +702,6 @@ void updateBattery(){
 
 	}); 
 
-	// NSLog(@"Vaon print %f, %f", batteryHStackView.bounds.size.width, dockWidth);
 	// if(batteryHStackView.bounds.size.width > dockWidth){
 	// 		batteryScrollView.scrollEnabled = TRUE;
 	// 			if(currentSwitcherStyle == 2){
@@ -711,7 +749,6 @@ void iOS14UpdateBattery(){
 				VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
 				
 				// NSLog(@"Vaon contains %i", ![deviceNames containsObject:newCell.device.name]);
-				NSLog(@"Vaon %@", device.name);
 
 				//checks if devices are not already on the horizontal stack and the list of device names
 				if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.device.name]){
@@ -754,6 +791,7 @@ void iOS14UpdateBattery(){
 				}];	
 			}
 		}
+		updateScrollWidthAndTouchPassthrough();
 
 
 
@@ -843,11 +881,7 @@ void iOS14UpdateBattery(){
 }
 
 
-
-//fade in the base Vaon view
-void fadeViewIn(UIView *view, CGFloat duration){
-	// stockHidden = TRUE;
-
+void _fadeViewIn(UIView *view, CGFloat duration) {
 	NSLog(@"Vaon Fade In %i", stockHidden);
 
 
@@ -883,28 +917,46 @@ void fadeViewIn(UIView *view, CGFloat duration){
 			}
 		}
 		firstSlideIn = true;	
-		NSLog(@"Vaon print %f, %f", batteryHStackView.bounds.size.width, dockWidth);
-		if(batteryHStackView.bounds.size.width > dockWidth){
-			batteryScrollView.scrollEnabled = TRUE;
-				if(currentSwitcherStyle == 2){
-					vaonGridView.userInteractionEnabled = TRUE;
-				}else {
-					// vaonView.userInteractionEnabled = TRUE;
-					// batteryScrollView.userInteractionEnabled = TRUE;
-				}
-			}else{
-				batteryScrollView.scrollEnabled = FALSE;
+		// if(batteryHStackView.bounds.size.width > customWidth){
+		// 	batteryScrollView.scrollEnabled = TRUE;
+		// 		if(currentSwitcherStyle == 2){
+		// 			vaonGridView.userInteractionEnabled = TRUE;
+		// 		}else {
+		// 			vaonView.userInteractionEnabled = TRUE;
+		// 			batteryScrollView.userInteractionEnabled = TRUE;
+		// 			if(switcherContentView) {
+		// 				switcherContentView.userInteractionEnabled = TRUE;	
+		// 			}
+		// 		}
+		// 	}else{
+		// 		batteryScrollView.scrollEnabled = FALSE;
 
-				if(currentSwitcherStyle == 2){
-					vaonGridView.userInteractionEnabled = FALSE;
-				}else {
-					NSLog(@"Vaon print passthrough on %i", vaonView.userInteractionEnabled);
-					// vaonView.userInteractionEnabled = TRUE;
-					// batteryScrollView.userInteractionEnabled = FALSE;
-				}
-		}
+		// 		if(currentSwitcherStyle == 2){
+		// 			vaonGridView.userInteractionEnabled = FALSE;
+		// 		}else {
+		// 			vaonView.userInteractionEnabled = FALSE;
+		// 			batteryScrollView.userInteractionEnabled = FALSE;
+		// 			batteryHStackView.userInteractionEnabled = FALSE;
+		// 			if(switcherContentView) {
+		// 				switcherContentView.userInteractionEnabled = FALSE;	
+		// 			}
+		// 		}
+		// }
 
 	}];	
+
+}
+
+
+//fade in the base Vaon view
+void fadeViewIn(UIView *view, CGFloat duration){
+	// stockHidden = TRUE;
+
+	if(enableDelay) {
+		// NSTimer *delayTimer = [NSTimer scheduledTimerWithInterval:fadeInDelay target:self selector:@selector(_fadeViewIn::) userInfo:nil repeats:NO];
+	} else {
+		_fadeViewIn(view, duration);
+	}
 }
 
 //fade the base Vaon view out
@@ -928,9 +980,9 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		
 	} completion:^(BOOL finished) {
 			stockHidden = TRUE;
+			updateScrollWidthAndTouchPassthrough();
 	}];	
 }
-
 
 //update battery information and displayed data
 %group BatteryModeUpdates
@@ -944,14 +996,16 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		if(ios13){
 			updateBattery();
 		}
-		[self updateScrollWidthAndTouchPassthrough];
+		// [self updateScrollWidthAndTouchPassthrough];
+		updateScrollWidthAndTouchPassthrough();
 
 	}
 	-(void)setBatterSaveModeActive:(BOOL)arg1 {
 		if(ios13){
 			updateBattery();
 		}
-		[self updateScrollWidthAndTouchPassthrough];
+		// [self updateScrollWidthAndTouchPassthrough];
+		updateScrollWidthAndTouchPassthrough();
 
 		%orig;
 	}
@@ -970,31 +1024,39 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		}
 	}
 
-	%new
-	-(void)updateScrollWidthAndTouchPassthrough {
-		if(batteryHStackView.bounds.size.width > dockWidth){
-			batteryScrollView.scrollEnabled = TRUE;
-				if(currentSwitcherStyle == 2){
-					vaonGridView.userInteractionEnabled = TRUE;
-				}else {
-					// vaonView.userInteractionEnabled = TRUE;
-				}
-			}else{
-				batteryScrollView.scrollEnabled = FALSE;
+// 	%new
+// 	-(void)updateScrollWidthAndTouchPassthrough {
+// 		if(batteryHStackView.bounds.size.width > customWidth){
+// 			batteryScrollView.scrollEnabled = TRUE;
+// 				if(currentSwitcherStyle == 2){
+// 					vaonGridView.userInteractionEnabled = TRUE;
+// 				}else {
+// 					vaonView.userInteractionEnabled = TRUE;
+// 					if(switcherContentView) {
+// 						switcherContentView.userInteractionEnabled = TRUE;	
+// 					}
+// 				}
+// 			}else{
+// 				batteryScrollView.scrollEnabled = FALSE;
 
-				if(currentSwitcherStyle == 2){
-					vaonGridView.userInteractionEnabled = FALSE;
-				}else {
-					// vaonView.userInteractionEnabled = FALSE;
-				}
-		}
-		NSLog(@"Vaon updateScrollWidthAndTouchPassthrough %i", vaonView.userInteractionEnabled);
+// 				if(currentSwitcherStyle == 2){
+// 					vaonGridView.userInteractionEnabled = FALSE;
+// 				}else {
+// 					vaonView.userInteractionEnabled = FALSE;
+// 					if(switcherContentView) {
+// 						switcherContentView.userInteractionEnabled = FALSE;	
+// 					}
+// 				}
+// 		}
+// 		NSLog(@"Vaon updateScrollWidthAndTouchPassthrough %i", vaonView.userInteractionEnabled);
 
-	}
+// 	}
  
  %end
 
 %end
+
+
 
 %group iOS13BatteryModeUpdates
 
@@ -1003,13 +1065,11 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 	-(void)addDeviceChangeHandler:(id)arg1 withIdentifier:(id)arg2 {
 		%orig;
-		NSLog(@"Vaon added");
 		updateBattery();
 	}
 
 	-(void)removeDeviceChangeHandlerWithIdentifier:(id)arg1 {
 		%orig;
-		NSLog(@"Vaon removed");
 		updateBattery();
 	}
 
@@ -1022,6 +1082,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	//creates vaonview for normal/non-grid app switcher 
 	-(void)didMoveToWindow {
 		%orig;
+		switcherContentView = self;
 		if(![selectedModule isEqual:@"none"]){
 			CGFloat mainScreen = [[UIScreen mainScreen] bounds].size.height;
 			if(!vaonViewIsInitialized && !(currentSwitcherStyle==2)){
@@ -1073,6 +1134,7 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 
 
+			updateScrollWidthAndTouchPassthrough();
 
 			if(self.window != nil){
 				// opening the app switcher from the home screen
@@ -1081,13 +1143,17 @@ void fadeViewOut(UIView *view, CGFloat duration){
 				} else {
 					if(stockHidden){	
 						//TODO: look into this
-						batteryHStackView.userInteractionEnabled = FALSE;
-						batteryScrollView.userInteractionEnabled = FALSE;
+						// vaonView.userInteractionEnabled = FALSE;
+						// batteryHStackView.userInteractionEnabled = FALSE;
+						// batteryScrollView.userInteractionEnabled = FALSE;
+						// if(switcherContentView) {
+						// 	switcherContentView.userInteractionEnabled = FALSE;	
+						// }
 
 						fadeViewIn(vaonView, 0.4);
 					}
 				}
-			}
+			} 
 		}
 
 	}
@@ -1157,10 +1223,6 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			// SBApplication *frontApp = [(SpringBoard*)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
 			// NSString *currentAppDisplayID = [frontApp bundleIdentifier];
 
-			// NSLog(@"%s %@", "Vaon 1", arg1);
-			// NSLog(@"Vaon 2 %@", arg2);
-			// NSLog(@"Vaon 3 %@", arg3);
-			// NSLog(@"Vaon 4 %@", arg2);
 
 
 			if(!stockHidden){
@@ -1308,10 +1370,13 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 void updateSettings(){
 	[prefs registerBool:&isEnabled default:TRUE forKey:@"isEnabled"];
-	[prefs registerObject:&switcherMode default:@"stock" forKey:@"switcherMode"];
+	[prefs registerObject:&switcherMode default:@"grid" forKey:@"switcherMode"];
 	[prefs registerObject:&selectedModule default:@"battery" forKey:@"moduleSelection"];
+	[prefs registerBool:&hideBackground default:FALSE forKey:@"hideBackground"];
 	[prefs registerBool:&hideAppTitles default:FALSE forKey:@"hideAppTitles"];
 	[prefs registerBool:&hideSuggestionBanner default:TRUE forKey:@"hideSuggestionBanner"];
+	[prefs registerBool:&enableDelay default:FALSE forKey:@"enableDelay"];
+	[prefs registerFloat:&fadeInDelay default:0.5 forKey:@"fadeInDelay"];
 	[prefs registerBool:&customHeightEnabled default:FALSE forKey:@"customHeightEnabled"];
 	[prefs registerFloat:&customHeight default:113 forKey:@"customHeight"];
 	[prefs registerBool:&customWidthEnabled default:FALSE forKey:@"customWidthEnabled"];
@@ -1364,7 +1429,6 @@ void updateSettings(){
 			%init(BatteryModeUpdates);
 		
 			if(ios13){
-				NSLog(@"%s", "Vaon: Initializing ios 13 battery update hooks");
 				%init(iOS13BatteryModeUpdates);
 
 			}

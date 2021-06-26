@@ -40,7 +40,7 @@
 			<key>key</key>
 			<string>switcherMode</string>
 			<key>default</key>
-			<string>stock</string>
+			<string>grid</string>
 			<key>defaults</key>
 			<string>com.atar13.vaonprefs</string>
 			<key>validTitles</key>
@@ -104,7 +104,19 @@
 			<key>label</key>
 			<string>Additional Options</string>
 		</dict>
-			<dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>hideBackground</string>
+			<key>label</key>
+			<string>Hide Background</string>
+		</dict>
+		<dict>
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
@@ -127,6 +139,34 @@
 			<string>hideSuggestionBanner</string>
 			<key>label</key>
 			<string>Hide Suggested Apps/Handoff Banner</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>enableDelay</string>
+			<key>label</key>
+			<string>Enable Fade In Delay</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<real>0.5</real>
+			<key>min</key>
+			<real>0.1</real>
+			<key>max</key>
+			<real>3</real>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>fadeInDelay</string>
 		</dict>
 		<dict>
 			<key>cell</key>
