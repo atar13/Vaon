@@ -23,14 +23,22 @@ NSString *selectedModule = nil;
 BOOL hideBackground;
 BOOL hideAppTitles;
 BOOL hideSuggestionBanner;
+
+BOOL enableFlyInOut;
 BOOL enableDelay;
 CGFloat fadeInDelay;
+
 BOOL customHeightEnabled;
 CGFloat customHeight;
 BOOL customWidthEnabled;
 CGFloat customWidth;
 BOOL customVerticalOffsetEnabled;
 CGFloat customVerticalOffset;
+
+BOOL customGridSwitcherAppSizeEnabled;
+CGFloat customGridSwitcherAppSize;
+BOOL customGridSwitcherSpacingEnabled;
+CGFloat customGridSwitcherSpacing;
 
 //battery configuration preference variables
 BOOL hideInternal;
@@ -891,9 +899,16 @@ void fadeViewIn(UIView *view, CGFloat duration){
 
 	CGRect mainScreen = [[UIScreen mainScreen] bounds];
 
+	if(firstSlideIn && !enableFlyInOut){
+		if(customVerticalOffsetEnabled){
+			view.frame = CGRectMake(view.frame.origin.x, mainScreen.size.height + customVerticalOffset - view.frame.size.height, view.frame.size.width, view.frame.size.height);
+		} else {
+			view.frame = CGRectMake(view.frame.origin.x, mainScreen.size.height - 25 - view.frame.size.height, view.frame.size.width, view.frame.size.height);
+		}
+	}
 
 	[UIView animateWithDuration:duration animations:^ {
-		if(firstSlideIn){
+		if(firstSlideIn && enableFlyInOut){
 			if(customVerticalOffsetEnabled){
 				view.frame = CGRectMake(view.frame.origin.x, mainScreen.size.height + customVerticalOffset - view.frame.size.height, view.frame.size.width, view.frame.size.height);
 			} else {
@@ -966,9 +981,15 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	// [view.centerYAnchor constraintEqualToAnchor:view.bottomAnchor constant:200].active = TRUE;
 	CGRect mainScreen = [[UIScreen mainScreen] bounds];
 
+	if(!enableFlyInOut) {
+		view.frame = CGRectMake(view.frame.origin.x, mainScreen.size.height + 200, view.frame.size.width, view.frame.size.height);
+	}
+
 	[UIView animateWithDuration:duration animations:^ {
 		// [view layoutIfNeeded];
-		view.frame = CGRectMake(view.frame.origin.x, mainScreen.size.height + 200, view.frame.size.width, view.frame.size.height);
+		if(enableFlyInOut) {
+			view.frame = CGRectMake(view.frame.origin.x, mainScreen.size.height + 200, view.frame.size.width, view.frame.size.height);
+		}
 
 		view.alpha = 0;
 		
@@ -1316,11 +1337,20 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	}
 
 	- (void) setGridSwitcherPageScale: (double)arg1 {
-		%orig(0.25);
+		if(customGridSwitcherAppSizeEnabled) {
+			%orig(customGridSwitcherAppSize);
+		} else {
+			%orig(0.25);
+		}
 	}
 
 	-(void)setGridSwitcherVerticalNaturalSpacingPortrait: (double)arg1 {
-		%orig(40);
+		if(customGridSwitcherSpacingEnabled) {
+			%orig(customGridSwitcherSpacing);
+
+		} else {
+			%orig(40);
+		}
 	}
 %end
 
@@ -1417,8 +1447,11 @@ void updateSettings(){
 	[prefs registerBool:&hideBackground default:FALSE forKey:@"hideBackground"];
 	[prefs registerBool:&hideAppTitles default:FALSE forKey:@"hideAppTitles"];
 	[prefs registerBool:&hideSuggestionBanner default:TRUE forKey:@"hideSuggestionBanner"];
+
+	[prefs registerBool:&enableFlyInOut default:TRUE forKey:@"enableFlyInOut"];
 	[prefs registerBool:&enableDelay default:FALSE forKey:@"enableDelay"];
 	[prefs registerFloat:&fadeInDelay default:0.5 forKey:@"fadeInDelay"];
+
 	[prefs registerBool:&customHeightEnabled default:FALSE forKey:@"customHeightEnabled"];
 	[prefs registerFloat:&customHeight default:113 forKey:@"customHeight"];
 	[prefs registerBool:&customWidthEnabled default:FALSE forKey:@"customWidthEnabled"];
@@ -1435,6 +1468,11 @@ void updateSettings(){
 	[prefs registerFloat:&customBatteryCellSize default:50 forKey:@"customBatteryCellSize"];
 	[prefs registerBool:&customPercentageFontSizeEnabled default:FALSE forKey:@"customPercentageFontSizeEnabled"];
 	[prefs registerFloat:&customPercentageFontSize default:12 forKey:@"customPercentageFontSize"];
+
+	[prefs registerBool:&customGridSwitcherAppSizeEnabled default:FALSE forKey:@"customGridSwitcherAppSizeEnabled"];
+	[prefs registerFloat:&customGridSwitcherAppSize default:0.25 forKey:@"customGridSwitcherAppSize"];
+	[prefs registerBool:&customGridSwitcherSpacingEnabled default:FALSE forKey:@"customGridSwitcherSpacingEnabled"];
+	[prefs registerFloat:&customGridSwitcherSpacing default:40 forKey:@"customGridSwitcherSpacingEnabled"];
 }
 
 %ctor {

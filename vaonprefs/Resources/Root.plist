@@ -132,6 +132,18 @@
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>hideAppIcons</string>
+			<key>label</key>
+			<string>Hide Switcher App Icons</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
 			<true/>
 			<key>defaults</key>
 			<string>com.atar13.vaonprefs</string>
@@ -139,6 +151,26 @@
 			<string>hideSuggestionBanner</string>
 			<key>label</key>
 			<string>Hide Suggested Apps/Handoff Banner</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Animation Options</string>
+			<key>footerText</key>
+			<string>Fade in delay is known to have a few issues with the stock switcher</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>enableFlyInOut</string>
+			<key>label</key>
+			<string>Enable fly in/out animations</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -240,7 +272,7 @@
 			<key>key</key>
 			<string>customVerticalOffsetEnabled</string>
 			<key>label</key>
-			<string>Enable Custom Vertical Offset</string>
+			<string>Enable Custom Vertical Offset (from bottom)</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -248,7 +280,7 @@
 			<key>default</key>
 			<integer>-80</integer>
 			<key>min</key>
-			<integer>-1000</integer>
+			<integer>-800</integer>
 			<key>max</key>
 			<integer>100</integer>
 			<key>showValue</key>
@@ -257,6 +289,68 @@
 			<string>com.atar13.vaonprefs</string>
 			<key>key</key>
 			<string>customVerticalOffset</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Grid Switcher Custom Sizing</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customGridSwitcherAppSizeEnabled</string>
+			<key>label</key>
+			<string>Enable Custom App Size</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<real>0.25</real>
+			<key>min</key>
+			<real>0.1</real>
+			<key>max</key>
+			<real>0.7</real>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customGridSwitcherAppSize</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customGridSwitcherSpacingEnabled</string>
+			<key>label</key>
+			<string>Enable Custom Spacing</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>40</integer>
+			<key>min</key>
+			<integer>0</integer>
+			<key>max</key>
+			<integer>100</integer>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customGridSwitcherSpacing</string>
 		</dict>
 		<dict>
 			<key>cell</key>
