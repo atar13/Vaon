@@ -881,7 +881,11 @@ void iOS14UpdateBattery(){
 }
 
 
-void _fadeViewIn(UIView *view, CGFloat duration) {
+
+
+//fade in the base Vaon view
+void fadeViewIn(UIView *view, CGFloat duration){
+	// stockHidden = TRUE;
 	NSLog(@"Vaon Fade In %i", stockHidden);
 
 
@@ -910,7 +914,9 @@ void _fadeViewIn(UIView *view, CGFloat duration) {
 				}
 				for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
 					if(finished){
-						[subview newAnimateOuterLayerToCurrentPercentage];
+						if(firstSlideIn) {
+							[subview newAnimateOuterLayerToCurrentPercentage];
+						}
 						stockHidden = FALSE;
 					}
 				}
@@ -945,18 +951,6 @@ void _fadeViewIn(UIView *view, CGFloat duration) {
 
 	}];	
 
-}
-
-
-//fade in the base Vaon view
-void fadeViewIn(UIView *view, CGFloat duration){
-	// stockHidden = TRUE;
-
-	if(enableDelay) {
-		// NSTimer *delayTimer = [NSTimer scheduledTimerWithInterval:fadeInDelay target:self selector:@selector(_fadeViewIn::) userInfo:nil repeats:NO];
-	} else {
-		_fadeViewIn(view, duration);
-	}
 }
 
 //fade the base Vaon view out
@@ -1139,7 +1133,11 @@ void fadeViewOut(UIView *view, CGFloat duration){
 			if(self.window != nil){
 				// opening the app switcher from the home screen
 				if(currentAppDisplayID==nil && stockHidden){
-					fadeViewIn(vaonView, 0.4);
+					if(enableDelay) {
+							delayedFadeInTimer = [NSTimer scheduledTimerWithTimeInterval:fadeInDelay target:self selector:@selector(delayedFadeViewIn) userInfo:nil repeats:NO];
+					} else {
+						fadeViewIn(vaonView, 0.4);
+					}
 				} else {
 					if(stockHidden){	
 						//TODO: look into this
@@ -1150,12 +1148,23 @@ void fadeViewOut(UIView *view, CGFloat duration){
 						// 	switcherContentView.userInteractionEnabled = FALSE;	
 						// }
 
-						fadeViewIn(vaonView, 0.4);
+						if(enableDelay) {
+							delayedFadeInTimer = [NSTimer scheduledTimerWithTimeInterval:fadeInDelay target:self selector:@selector(delayedFadeViewIn) userInfo:nil repeats:NO];
+						} else {
+							fadeViewIn(vaonView, 0.4);
+						}
 					}
 				}
 			} 
 		}
 
+	}
+
+	%new 
+	-(void)delayedFadeViewIn {
+		fadeViewIn(vaonView, 0.4);
+		[delayedFadeInTimer invalidate];
+		delayedFadeInTimer = nil;	
 	}
 
 %end
@@ -1218,17 +1227,39 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	//fade out vaon when entering an app layout from the switcher
 	-(void)_configureRequest:(id)arg1 forSwitcherTransitionRequest:(id)arg2 withEventLabel:(id)arg3 {
 		%orig;
+		if(delayedFadeInTimer) {
+			[delayedFadeInTimer invalidate];
+			delayedFadeInTimer = nil;
+		}
 
 		if(![selectedModule isEqual:@"none"] && customSwitcherStyle != 2){
-			// SBApplication *frontApp = [(SpringBoard*)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
-			// NSString *currentAppDisplayID = [frontApp bundleIdentifier];
-
-
-
 			if(!stockHidden){
 				fadeViewOut(vaonView, 0.5);
 			}
-		}
+		} 
+		// else if(![selectedModule isEqual:@"none"]){
+		// 	if(delayedFadeInTimer) {
+		// 		if(vaonGridView.alpha != 1) {
+		// 			NSLog(@"Vaon entered app %@", delayedFadeInTimer);
+		// 			[delayedFadeInTimer invalidate];
+		// 			delayedFadeInTimer = nil;
+		// 			// SBApplication *frontApp = [(SpringBoard*)[UIApplication sharedApplication] _accessibilityFrontMostApplication];
+		// 			// NSString *currentAppDisplayID = [frontApp bundleIdentifier];
+		// 			// if(currentAppDisplayID) {
+		// 				if(customSwitcherStyle != 2) {
+		// 					vaonView.alpha = 0;
+		// 				} else {
+		// 					vaonGridView.alpha = 0;
+		// 				}
+		// 			// }
+		// 			NSLog(@"Vaon entered app %@", delayedFadeInTimer);
+		// 		} else {
+		// 			if(customSwitcherStyle != 2) {
+		// 				fadeViewIn(vaonView, 0.4);
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 
@@ -1245,7 +1276,12 @@ void fadeViewOut(UIView *view, CGFloat duration){
 					fadeViewOut(vaonGridView, 0.3);
 				}else{
 					if(!(vaonGridView.alpha==1)){
-						fadeViewIn(vaonGridView, 0.3);
+						NSLog(@"Vaon Grid Timer %i", enableDelay);
+						if(enableDelay) {
+							delayedFadeInTimer = [NSTimer scheduledTimerWithTimeInterval:fadeInDelay target:self selector:@selector(delayedGridFadeViewIn) userInfo:nil repeats:NO];
+						} else {
+							fadeViewIn(vaonGridView, 0.4);
+						}
 					}
 				}
 			}
@@ -1258,6 +1294,12 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		}
 	}
 
+	%new 
+	-(void)delayedGridFadeViewIn{
+		fadeViewIn(vaonGridView, 0.4);
+		[delayedFadeInTimer invalidate];
+		delayedFadeInTimer = nil;
+	}
 %end
 
 

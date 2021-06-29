@@ -144,7 +144,7 @@
 			<key>cell</key>
 			<string>PSSwitchCell</string>
 			<key>default</key>
-			<true/>
+			<false/>
 			<key>defaults</key>
 			<string>com.atar13.vaonprefs</string>
 			<key>key</key>
@@ -275,6 +275,10 @@
 			<string>Anthony Tarbinian</string>
 			<key>user</key>
 			<string>atar137h</string>
+			<key>userID</key>
+			<string>964947766907568128</string>
+			<key>showAvatar</key>
+			<true/>
 			<key>action</key>
 			<string>twitter</string>
 		</dict>
