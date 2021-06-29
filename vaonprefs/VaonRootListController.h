@@ -4,7 +4,6 @@
 #import <spawn.h>   
 
 @interface VaonRootListController : PSListController
-@property (nonatomic, retain) NSMutableDictionary *savedSpecifiers;
 @end
 
 @interface BatteryPreferencesController : PSListController

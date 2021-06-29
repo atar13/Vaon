@@ -42,6 +42,18 @@
 			<key>defaults</key>
 			<string>com.atar13.vaonprefs</string>
 			<key>key</key>
+			<string>enableBoldPercentage</string>
+			<key>label</key>
+			<string>Enable Bold Percentage</string>
+		</dict>		
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
 			<string>roundOutlineCorners</string>
 			<key>label</key>
 			<string>Round Battery Indicator Corners</string>
@@ -56,7 +68,7 @@
 			<key>key</key>
 			<string>pulsateChargingOutline</string>
 			<key>label</key>
-			<string>Pulsate Outline of Charging Devices *</string>
+			<string>Pulsate Outline of Charging Devices</string>
 		</dict>
 		<dict>
 			<key>cell</key>

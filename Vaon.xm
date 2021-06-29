@@ -43,6 +43,7 @@ CGFloat customGridSwitcherSpacing;
 //battery configuration preference variables
 BOOL hideInternal;
 BOOL hidePercent;
+BOOL enableBoldPercentage;
 BOOL roundOutlineCorners;
 BOOL pulsateChargingOutline;
 BOOL keepDisconnectedDevices;
@@ -176,10 +177,16 @@ BOOL firstSlideIn = false;
 		//font customization
 		UIFont *devicePercentageLabelFont = [[UIFont alloc] init];
 		//custom font size from prefs
+		UIFontWeight percentageFontWeight;
+		if(enableBoldPercentage) {
+			percentageFontWeight = UIFontWeightBold;
+		} else {
+			percentageFontWeight = UIFontWeightRegular;
+		}
 		if(customPercentageFontSizeEnabled){
-        	devicePercentageLabelFont = [UIFont systemFontOfSize:customPercentageFontSize weight:UIFontWeightBold];
+        	devicePercentageLabelFont = [UIFont systemFontOfSize:customPercentageFontSize weight:percentageFontWeight];
 		} else{
-        	devicePercentageLabelFont = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
+        	devicePercentageLabelFont = [UIFont systemFontOfSize:12 weight:percentageFontWeight];
 		}
         self.devicePercentageLabel.font = devicePercentageLabelFont;
         self.devicePercentageLabel.frame = self.bounds;
@@ -1461,6 +1468,7 @@ void updateSettings(){
 
 	[prefs registerBool:&hideInternal default:FALSE forKey:@"hideInternal"];
 	[prefs registerBool:&hidePercent default:FALSE forKey:@"hidePercent"];
+	[prefs registerBool:&enableBoldPercentage default:TRUE forKey:@"enableBoldPercentage"];
 	[prefs registerBool:&roundOutlineCorners default:TRUE forKey:@"roundOutlineCorners"];
 	[prefs registerBool:&pulsateChargingOutline default:FALSE forKey:@"pulsateChargingOutline"];
 	[prefs registerBool:&keepDisconnectedDevices default:TRUE forKey:@"keepDisconnectedDevices"];
