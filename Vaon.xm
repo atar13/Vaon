@@ -22,6 +22,7 @@ NSString *switcherMode = nil;
 NSString *selectedModule = nil;
 BOOL hideBackground;
 BOOL hideAppTitles;
+BOOL hideAppIcons;
 BOOL hideSuggestionBanner;
 
 BOOL enableFlyInOut;
@@ -1406,6 +1407,19 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 %end
 
+
+%hook SBFluidSwitcherIconImageContainerView 
+
+	-(void)didMoveToWindow {
+		%orig;
+		if(hideAppIcons) {
+			self.alpha = 0;
+		}
+
+	}
+
+%end
+
 //displays vaon when no apps are open
 %hook SBFluidSwitcherAnimationSettings
 	-(void)setEmptySwitcherDismissDelay:(double)arg1 {
@@ -1453,6 +1467,7 @@ void updateSettings(){
 	[prefs registerObject:&selectedModule default:@"battery" forKey:@"moduleSelection"];
 	[prefs registerBool:&hideBackground default:FALSE forKey:@"hideBackground"];
 	[prefs registerBool:&hideAppTitles default:FALSE forKey:@"hideAppTitles"];
+	[prefs registerBool:&hideAppIcons default:FALSE forKey:@"hideAppIcons"];
 	[prefs registerBool:&hideSuggestionBanner default:TRUE forKey:@"hideSuggestionBanner"];
 
 	[prefs registerBool:&enableFlyInOut default:TRUE forKey:@"enableFlyInOut"];

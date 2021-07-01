@@ -1,8 +1,8 @@
 Package: com.atar13.vaon
 Name: Vaon
-Version: 0.1.11
+Version: 1.0
 Architecture: iphoneos-arm
-Description: An awesome MobileSubstrate tweak!
+Description: Bluetooth battery information of connected/disconnected devices in the app switcher.
 Maintainer: atar13
 Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, ws.hbang.common
 Author: atar13

@@ -170,6 +170,9 @@
 @interface SBFluidSwitcherItemContainerHeaderView : UIView
 @end
 
+@interface SBFluidSwitcherIconImageContainerView : UIView
+@end
+
 @interface SBSwitcherWallpaperPageContentView : UIView
 @end
 
