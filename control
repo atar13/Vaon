@@ -3,7 +3,9 @@ Name: Vaon
 Version: 1.0
 Architecture: iphoneos-arm
 Description: Bluetooth battery information of connected/disconnected devices in the app switcher.
-Maintainer: atar13
+Maintainer: atar13 <atar13dev@gmail.com>
 Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, ws.hbang.common
-Author: atar13
+Author: atar13 <atar13dev@gmail.com>
+Depiction: https://atar13.github.io/repo/com.atar13.vaon
+Icon: https://atar13.github.io/assets/package_icons/vaonIcon.png
 Section: Tweaks
