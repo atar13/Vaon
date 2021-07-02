@@ -290,7 +290,7 @@
 			<key>key</key>
 			<string>customVerticalOffsetEnabled</string>
 			<key>label</key>
-			<string>Enable Custom Vertical Offset (from bottom)</string>
+			<string>Enable Custom Vertical Offset</string>
 		</dict>
 		<dict>
 			<key>cell</key>

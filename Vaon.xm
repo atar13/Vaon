@@ -46,6 +46,7 @@ CGFloat customGridSwitcherSpacing;
 
 //battery configuration preference variables
 BOOL hideInternal;
+BOOL hidePercentageLabel;
 BOOL hidePercent;
 BOOL enableBoldPercentage;
 BOOL roundOutlineCorners;
@@ -162,11 +163,19 @@ BOOL firstSlideIn = false;
         self = [super initWithFrame:arg1];
         self.axis = UILayoutConstraintAxisVertical;
         self.alignment = UIStackViewAlignmentCenter;
-        self.distribution = UIStackViewDistributionEqualSpacing;
-        self.spacing = 10;
+		if(paddingBetweenGlyphAndLabelEnabled){
+			self.spacing = paddingBetweenGlyphAndLabel;
+			if(paddingBetweenGlyphAndLabel > 0) {
+				self.distribution = UIStackViewDistributionEqualSpacing;
+			}
+		} else {
+			self.spacing = 10;
+			self.distribution = UIStackViewDistributionEqualSpacing;
+		}
         self.clipsToBounds = FALSE;
         self.backgroundColor = [UIColor clearColor];
         self.translatesAutoresizingMaskIntoConstraints = FALSE;
+
     
 		//initialize bakcground blur effect
 		self.circleBackgroundBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
@@ -198,7 +207,10 @@ BOOL firstSlideIn = false;
 		}
         self.devicePercentageLabel.font = devicePercentageLabelFont;
         self.devicePercentageLabel.frame = self.bounds;
-        self.devicePercentageLabel.clipsToBounds = TRUE;
+        // self.devicePercentageLabel.clipsToBounds = TRUE;
+
+		// self.devicePercentageLabel.layoutMargins = UIEdgeInsetsMake(0, 0, -20, 0);
+		// [self setLayoutMarginsRelativeArrangement:YES];
 		// self.devicePercentageLabel.bounds = CGRectInset(self.devicePercentageLabel.frame, 0.0f, 1.0f);
 		// self.devicePercentageLabel.directionalLayoutMargins = NSDirectionalEdgeInsetsMake(100, 0, 0, 0);
 
@@ -211,18 +223,18 @@ BOOL firstSlideIn = false;
 
 		[self addArrangedSubview:self.circleBackgroundVisualEffectView];
 
-		if(paddingBetweenGlyphAndLabelEnabled) {
-			self.paddingView = [[UIView alloc] init];
-			[self.paddingView.heightAnchor constraintEqualToConstant: paddingBetweenGlyphAndLabel].active = TRUE;
-			[self.paddingView.widthAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
-			[self addArrangedSubview:self.paddingView];
-		}
+		// if(paddingBetweenGlyphAndLabelEnabled) {
+		// 	self.paddingView = [[UIView alloc] init];
+		// 	[self.paddingView.heightAnchor constraintEqualToConstant: paddingBetweenGlyphAndLabel].active = TRUE;
+		// 	[self.paddingView.widthAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
+		// 	[self addArrangedSubview:self.paddingView];
+		// }
 
 
 		//view placement and constrains for battery percentage 
         // self.devicePercentageLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
         // [self.devicePercentageLabel.centerXAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerXAnchor].active = TRUE;
-        // [self.devicePercentageLabel.centerYAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerYAnchor].active = TRUE;
+        // [self.devicePercentageLabel.centerYAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerYAnchor constant:100].active = TRUE;
 
 		//initialize circular outline path
         self.circleOutlinePath = [UIBezierPath bezierPathWithArcCenter:CGPointMake(self.circleBackgroundVisualEffectView.contentView.center.x+self.cellWidth/2,self.circleBackgroundVisualEffectView.contentView.center.y+self.cellWidth/2)
@@ -269,7 +281,9 @@ BOOL firstSlideIn = false;
 		}
 		// self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
 		
-        [self addArrangedSubview:self.devicePercentageLabel];
+		if(!hidePercentageLabel) {
+			[self addArrangedSubview:self.devicePercentageLabel];
+		}
 		[self.circleBackgroundVisualEffectView.contentView addSubview:self.deviceGlyphView];
         self.deviceGlyphView.translatesAutoresizingMaskIntoConstraints = FALSE;
         [self.deviceGlyphView.centerXAnchor constraintEqualToAnchor:self.circleBackgroundVisualEffectView.centerXAnchor].active = TRUE;
@@ -1526,6 +1540,7 @@ void updateSettings(){
 	[prefs registerFloat:&customHorizontalOffset default:0 forKey:@"customHorizontalOffset"];
 
 	[prefs registerBool:&hideInternal default:FALSE forKey:@"hideInternal"];
+	[prefs registerBool:&hidePercentageLabel default:FALSE forKey:@"hidePercentageLabel"];
 	[prefs registerBool:&hidePercent default:FALSE forKey:@"hidePercent"];
 	[prefs registerBool:&enableBoldPercentage default:TRUE forKey:@"enableBoldPercentage"];
 	[prefs registerBool:&roundOutlineCorners default:TRUE forKey:@"roundOutlineCorners"];

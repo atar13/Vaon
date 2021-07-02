@@ -30,6 +30,18 @@
 			<key>defaults</key>
 			<string>com.atar13.vaonprefs</string>
 			<key>key</key>
+			<string>hidePercentageLabel</string>
+			<key>label</key>
+			<string>Hide Battery Percent Label</string>
+		</dict>		
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
 			<string>hidePercent</string>
 			<key>label</key>
 			<string>Hide Percent(%) Symbol</string>
@@ -196,7 +208,7 @@
 			<key>default</key>
 			<integer>0</integer>
 			<key>min</key>
-			<integer>0</integer>
+			<integer>-100</integer>
 			<key>max</key>
 			<integer>100</integer>
 			<key>showValue</key>
