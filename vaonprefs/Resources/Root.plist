@@ -120,7 +120,7 @@
 			<key>key</key>
 			<string>hideBackground</string>
 			<key>label</key>
-			<string>Hide Background</string>
+			<string>Hide Vaon Background</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -157,6 +157,18 @@
 			<string>hideSuggestionBanner</string>
 			<key>label</key>
 			<string>Hide Suggested Apps/Handoff Banner</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>displayWithNoApps</string>
+			<key>label</key>
+			<string>Display Vaon when no apps are open</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -295,6 +307,34 @@
 			<string>com.atar13.vaonprefs</string>
 			<key>key</key>
 			<string>customVerticalOffset</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customHorizontalOffsetEnabled</string>
+			<key>label</key>
+			<string>Enable Custom Horizontal Offset</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>min</key>
+			<integer>-200</integer>
+			<key>max</key>
+			<integer>200</integer>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customHorizontalOffset</string>
 		</dict>
 		<dict>
 			<key>cell</key>

@@ -61,7 +61,7 @@ NSArray *batteryPreferenceKeys;
 		[super setPreferenceValue:value specifier:specifier];
 		if((BOOL)specifier.properties[@"value"]==[prefs boolForKey:specifier.properties[@"key"]]){
 			if([batteryPreferenceKeys containsObject:specifier.properties[@"key"]]){
-				[self prefsChangeAlert];
+				// [self prefsChangeAlert];
 			}
 		}
 	}

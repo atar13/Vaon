@@ -24,6 +24,7 @@ BOOL hideBackground;
 BOOL hideAppTitles;
 BOOL hideAppIcons;
 BOOL hideSuggestionBanner;
+BOOL displayWithNoApps;
 
 BOOL enableFlyInOut;
 BOOL enableDelay;
@@ -35,6 +36,8 @@ BOOL customWidthEnabled;
 CGFloat customWidth;
 BOOL customVerticalOffsetEnabled;
 CGFloat customVerticalOffset;
+BOOL customHorizontalOffsetEnabled;
+CGFloat customHorizontalOffset;
 
 BOOL customGridSwitcherAppSizeEnabled;
 CGFloat customGridSwitcherAppSize;
@@ -54,6 +57,8 @@ BOOL customBatteryCellSizeEnabled;
 CGFloat customBatteryCellSize; 
 BOOL customPercentageFontSizeEnabled;
 CGFloat customPercentageFontSize;
+BOOL paddingBetweenGlyphAndLabelEnabled;
+CGFloat paddingBetweenGlyphAndLabel;
 
 UIView *vaonView;
 UIView *vaonGridView;
@@ -194,13 +199,25 @@ BOOL firstSlideIn = false;
         self.devicePercentageLabel.font = devicePercentageLabelFont;
         self.devicePercentageLabel.frame = self.bounds;
         self.devicePercentageLabel.clipsToBounds = TRUE;
+		// self.devicePercentageLabel.bounds = CGRectInset(self.devicePercentageLabel.frame, 0.0f, 1.0f);
+		// self.devicePercentageLabel.directionalLayoutMargins = NSDirectionalEdgeInsetsMake(100, 0, 0, 0);
 
 		//view placement and constraints for background blur
         // [self.circleBackgroundVisualEffectView.contentView addSubview:self.devicePercentageLabel];
         self.circleBackgroundVisualEffectView.translatesAutoresizingMaskIntoConstraints = FALSE;
         [self.circleBackgroundVisualEffectView.widthAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
         [self.circleBackgroundVisualEffectView.heightAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
-        [self addArrangedSubview:self.circleBackgroundVisualEffectView];
+		// self.circleBackgroundVisualEffectView.frame = self.circleBackgroundVisualEffectView.frame.inset() UIEdgeInsetsMake(0, 0, 10, 0);
+
+		[self addArrangedSubview:self.circleBackgroundVisualEffectView];
+
+		if(paddingBetweenGlyphAndLabelEnabled) {
+			self.paddingView = [[UIView alloc] init];
+			[self.paddingView.heightAnchor constraintEqualToConstant: paddingBetweenGlyphAndLabel].active = TRUE;
+			[self.paddingView.widthAnchor constraintEqualToConstant:self.cellWidth].active = TRUE;
+			[self addArrangedSubview:self.paddingView];
+		}
+
 
 		//view placement and constrains for battery percentage 
         // self.devicePercentageLabel.translatesAutoresizingMaskIntoConstraints = FALSE;
@@ -915,6 +932,7 @@ void fadeViewIn(UIView *view, CGFloat duration){
 	// stockHidden = TRUE;
 	NSLog(@"Vaon Fade In %i", stockHidden);
 
+	updateScrollWidthAndTouchPassthrough();
 
 	CGRect mainScreen = [[UIScreen mainScreen] bounds];
 
@@ -1146,7 +1164,11 @@ void fadeViewOut(UIView *view, CGFloat duration){
 					[vaonView.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:-25].active = TRUE;
 					// [vaonGridView.centerYAnchor constraintEqualToAnchor:self.bottomAnchor constant:-80].active = TRUE;
 				}
-				[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = TRUE;
+				if(customHorizontalOffsetEnabled) {
+					[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor constant:customHorizontalOffset].active = TRUE;
+				} else {
+					[vaonView.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = TRUE;
+				}
 				if(customWidthEnabled){
 					[vaonView.widthAnchor constraintEqualToConstant:customWidth].active = TRUE;
 				} else{
@@ -1245,7 +1267,11 @@ void fadeViewOut(UIView *view, CGFloat duration){
 					} else{
 						[vaonGridView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-25].active = TRUE;
 					}
-					[vaonGridView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = TRUE;
+					if(customHorizontalOffsetEnabled) {
+						[vaonGridView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor constant:customHorizontalOffset].active = TRUE;
+					} else {
+						[vaonGridView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor].active = TRUE;
+					}
 					if(customWidthEnabled){
 						[vaonGridView.widthAnchor constraintEqualToConstant:customWidth].active = TRUE;
 					} else{
@@ -1434,7 +1460,11 @@ void fadeViewOut(UIView *view, CGFloat duration){
 //displays vaon when no apps are open
 %hook SBFluidSwitcherAnimationSettings
 	-(void)setEmptySwitcherDismissDelay:(double)arg1 {
-		%orig(2);
+		if(displayWithNoApps) {
+			%orig(2);
+		} else {
+			%orig(arg1);
+		}
 	}
 %end
 
@@ -1480,6 +1510,7 @@ void updateSettings(){
 	[prefs registerBool:&hideAppTitles default:FALSE forKey:@"hideAppTitles"];
 	[prefs registerBool:&hideAppIcons default:FALSE forKey:@"hideAppIcons"];
 	[prefs registerBool:&hideSuggestionBanner default:TRUE forKey:@"hideSuggestionBanner"];
+	[prefs registerBool:&displayWithNoApps default:TRUE forKey:@"displayWithNoApps"];
 
 	[prefs registerBool:&enableFlyInOut default:TRUE forKey:@"enableFlyInOut"];
 	[prefs registerBool:&enableDelay default:FALSE forKey:@"enableDelay"];
@@ -1491,6 +1522,8 @@ void updateSettings(){
 	[prefs registerFloat:&customWidth default:400 forKey:@"customWidth"];
 	[prefs registerBool:&customVerticalOffsetEnabled default:FALSE forKey:@"customVerticalOffsetEnabled"];
 	[prefs registerFloat:&customVerticalOffset default:-80 forKey:@"customVerticalOffset"];
+	[prefs registerBool:&customHorizontalOffsetEnabled default:FALSE forKey:@"customHorizontalOffsetEnabled"];
+	[prefs registerFloat:&customHorizontalOffset default:0 forKey:@"customHorizontalOffset"];
 
 	[prefs registerBool:&hideInternal default:FALSE forKey:@"hideInternal"];
 	[prefs registerBool:&hidePercent default:FALSE forKey:@"hidePercent"];
@@ -1504,6 +1537,8 @@ void updateSettings(){
 	[prefs registerFloat:&customBatteryCellSize default:50 forKey:@"customBatteryCellSize"];
 	[prefs registerBool:&customPercentageFontSizeEnabled default:FALSE forKey:@"customPercentageFontSizeEnabled"];
 	[prefs registerFloat:&customPercentageFontSize default:12 forKey:@"customPercentageFontSize"];
+	[prefs registerBool:&paddingBetweenGlyphAndLabelEnabled default:FALSE forKey:@"paddingBetweenGlyphAndLabelEnabled"];
+	[prefs registerFloat:&paddingBetweenGlyphAndLabel default:0 forKey:@"paddingBetweenGlyphAndLabel"];
 
 	[prefs registerBool:&customGridSwitcherAppSizeEnabled default:FALSE forKey:@"customGridSwitcherAppSizeEnabled"];
 	[prefs registerFloat:&customGridSwitcherAppSize default:0.25 forKey:@"customGridSwitcherAppSize"];

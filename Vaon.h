@@ -96,6 +96,7 @@
 @property (nonatomic, strong) CAShapeLayer *circleOutlineLayer;
 @property (nonatomic, strong) UIImageView *deviceGlyphView;
 @property (nonatomic, strong) CABasicAnimation *percentageAnimation;
+@property (nonatomic, strong) UIView *paddingView;
 -(CGFloat)getCellWidth;
 -(void)setCellWidth:(CGFloat)arg1;
 -(void)addPercentageSymbolToLabel;

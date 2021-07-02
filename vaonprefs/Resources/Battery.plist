@@ -178,6 +178,34 @@
 			<key>key</key>
 			<string>customPercentageFontSize</string>
 		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>paddingBetweenGlyphAndLabelEnabled</string>
+			<key>label</key>
+			<string>Enable padding between glyph and label</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>min</key>
+			<integer>0</integer>
+			<key>max</key>
+			<integer>100</integer>
+			<key>showValue</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>paddingBetweenGlyphAndLabel</string>
+		</dict>
 	</array>
 	<key>title</key>
 	<string>Battery</string>
