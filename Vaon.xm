@@ -48,6 +48,8 @@ BOOL enableBoldPercentage;
 BOOL roundOutlineCorners;
 BOOL pulsateChargingOutline;
 BOOL keepDisconnectedDevices;
+BOOL customDeviceGlyphSizeEnabled;
+CGFloat customDeviceGlyphSize;
 BOOL customBatteryCellSizeEnabled;
 CGFloat customBatteryCellSize; 
 BOOL customPercentageFontSizeEnabled;
@@ -235,11 +237,20 @@ BOOL firstSlideIn = false;
 		} else {
         	self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
 		}
-		self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
-		[self.deviceGlyphView.heightAnchor constraintEqualToConstant:self.cellWidth*0.6].active = TRUE;
+
+		CGFloat glyphAspectRatio = self.deviceGlyphView.frame.size.width/self.deviceGlyphView.frame.size.height;
+
+		if(customDeviceGlyphSizeEnabled) {
+			[self.deviceGlyphView.heightAnchor constraintEqualToConstant:customDeviceGlyphSize].active = TRUE;
+			[self.deviceGlyphView.widthAnchor constraintEqualToConstant:customDeviceGlyphSize * glyphAspectRatio].active = TRUE;
+		} else {
+			[self.deviceGlyphView.heightAnchor constraintEqualToConstant:self.cellWidth * 0.6 ].active = TRUE;
+			[self.deviceGlyphView.widthAnchor constraintEqualToConstant:self.cellWidth * 0.6 * glyphAspectRatio].active = TRUE;
+		}
 		if(ios14) {
 			self.deviceGlyphView.transform = CGAffineTransformMake(1, 0, 0, 1, 0 ,0);
 		}
+		// self.deviceGlyphView.contentMode = UIViewContentModeScaleAspectFit;
 		
         [self addArrangedSubview:self.devicePercentageLabel];
 		[self.circleBackgroundVisualEffectView.contentView addSubview:self.deviceGlyphView];
@@ -1487,6 +1498,8 @@ void updateSettings(){
 	[prefs registerBool:&roundOutlineCorners default:TRUE forKey:@"roundOutlineCorners"];
 	[prefs registerBool:&pulsateChargingOutline default:TRUE forKey:@"pulsateChargingOutline"];
 	[prefs registerBool:&keepDisconnectedDevices default:TRUE forKey:@"keepDisconnectedDevices"];
+	[prefs registerBool:&customDeviceGlyphSizeEnabled default:FALSE forKey:@"customDeviceGlyphSizeEnabled"];
+	[prefs registerFloat:&customDeviceGlyphSize default:30 forKey:@"customDeviceGlyphSize"];
 	[prefs registerBool:&customBatteryCellSizeEnabled default:FALSE forKey:@"customBatteryCellSizeEnabled"];
 	[prefs registerFloat:&customBatteryCellSize default:50 forKey:@"customBatteryCellSize"];
 	[prefs registerBool:&customPercentageFontSizeEnabled default:FALSE forKey:@"customPercentageFontSizeEnabled"];
