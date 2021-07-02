@@ -1,6 +1,6 @@
 Package: com.atar13.vaon
 Name: Vaon
-Version: 1.0
+Version: 1.0.1
 Architecture: iphoneos-arm
 Description: Bluetooth battery information of connected/disconnected devices in the app switcher.
 Maintainer: atar13 <atar13dev@gmail.com>
