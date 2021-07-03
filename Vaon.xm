@@ -88,6 +88,7 @@ long long currentSwitcherStyle;
 BOOL appSwitcherOpen = FALSE;
 BOOL doneFadingIn = FALSE;
 BOOL stockHidden = TRUE;
+BOOL enteredApp;
 
 NSArray *connectedBluetoothDevices;
 NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
@@ -1307,9 +1308,21 @@ void fadeViewOut(UIView *view, CGFloat duration){
 	//fade out vaon when entering an app layout from the switcher
 	-(void)_configureRequest:(id)arg1 forSwitcherTransitionRequest:(id)arg2 withEventLabel:(id)arg3 {
 		%orig;
+		NSLog(@"Vaon test isMainSwitcherVisible %i", enteredApp);
 		if(delayedFadeInTimer) {
 			[delayedFadeInTimer invalidate];
 			delayedFadeInTimer = nil;
+			if(vaonView) {
+				// vaonView.alpha = 0;
+				fadeViewOut(vaonView, 0.2);
+			}
+		}
+
+		if(enteredApp) {
+			if(vaonView) {
+				// vaonView.alpha = 0;
+				fadeViewOut(vaonView, 0.2);
+			}
 		}
 
 		if(![selectedModule isEqual:@"none"] && customSwitcherStyle != 2){
@@ -1340,9 +1353,14 @@ void fadeViewOut(UIView *view, CGFloat duration){
 		// 		}
 		// 	}
 		// }
+
 	}
 
 
+	-(BOOL)isMainSwitcherVisible {
+		enteredApp = %orig;
+		return %orig;
+	}
 
 
 
