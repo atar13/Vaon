@@ -59,6 +59,7 @@
 -(BOOL)isLowBattery;
 -(BOOL)isInternal;
 -(NSString *)identifier;
+@property (nonatomic,readonly) long long productIdentifier;
 -(NSString *)name;
 -(BOOL)isConnected;
 -(NSString *)accessoryIdentifier;
@@ -84,6 +85,8 @@
 @property (nonatomic) BOOL disconnected;
 @property (nonatomic) CGFloat lastKnownPercentage;
 @property (nonatomic, strong) NSString *deviceName;
+@property (nonatomic) long long deviceProductIdentifier;
+@property (nonatomic) NSString * deviceIdentifier;
 @property (nonatomic) long long devicePercentage;
 @property (nonatomic) CGFloat cellWidth;
 @property (nonatomic, strong) UIView *circleBackgroundView;

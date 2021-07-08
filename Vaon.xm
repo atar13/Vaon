@@ -292,6 +292,8 @@ BOOL firstSlideIn = false;
 
 		[self.circleBackgroundVisualEffectView setNeedsDisplay];
         self.deviceName = connectedDevice.name;
+		self.deviceIdentifier = connectedDevice.identifier;
+		self.deviceProductIdentifier = connectedDevice.productIdentifier;
 
         return self;
     }
@@ -663,22 +665,29 @@ void updateBattery(){
 		for(BCBatteryDevice *device in connectedBluetoothDevices){
 
 			VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
-			
+			BOOL duplicate = FALSE;
+
+
+			for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
+				if([subview.deviceName isEqualToString:newCell.deviceName] || [subview.deviceIdentifier isEqualToString:newCell.deviceIdentifier]){
+					duplicate = TRUE;
+				}
+			}
 
 
 			//checks if devices are not already on the horizontal stack and the list of device names
-			if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.deviceName]){
+			if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.deviceName] && !duplicate){
 				//add all devices that are not the iPhone/iPad
 				if(![device isInternal]){
 					[subviewsToBeAdded addObject:newCell];			
 					[deviceIdentifiers addObject:[newCell.device identifier]];
-					[deviceNames addObject:[newCell.device name]];			
+					// [deviceNames addObject:[newCell.device name]];			
 				} else{
 					//displays the iphone if hideInternal is off
 					if(!hideInternal){
 						[subviewsToBeAdded addObject:newCell];
 						[deviceIdentifiers addObject:[newCell.device identifier]];
-						[deviceNames addObject:[newCell.device name]];			
+						// [deviceNames addObject:[newCell.device name]];			
 					}							
 				}
 			}
@@ -805,23 +814,31 @@ void iOS14UpdateBattery(){
 
 			// if(device != nil || [device.name isEqual:@"(null)"] || [device isEqual:@"(null)"]){
 			if(device || device != nil){
+				BOOL duplicate = FALSE;
 				VaonDeviceBatteryCell *newCell = [[VaonDeviceBatteryCell alloc] initWithFrame:batteryHStackView.bounds device:device];
 				
 				// NSLog(@"Vaon contains %i", ![deviceNames containsObject:newCell.device.name]);
 
 				//checks if devices are not already on the horizontal stack and the list of device names
-				if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.device.name]){
+				for(VaonDeviceBatteryCell *subview in batteryHStackView.subviews){
+					NSLog(@"Vaon name %@ | %@ | %@", subview.deviceName, subview.deviceIdentifier, newCell.deviceIdentifier);
+					[deviceNames addObject:subview.deviceName];
+					if([subview.deviceName isEqualToString:newCell.deviceName] || [subview.deviceIdentifier isEqualToString:newCell.deviceIdentifier]){
+						duplicate = TRUE;
+					}
+				}
+				if(![batteryHStackView.subviews containsObject:newCell] && ![deviceNames containsObject:newCell.deviceName] && !duplicate){
 					//add all devices that are not the iPhone/iPad
 					if(![device isInternal]){
 						[subviewsToBeAdded addObject:newCell];
 						[deviceIdentifiers addObject:[newCell.device identifier]];
-						[deviceNames addObject:[newCell.device name]];
+						// [deviceNames addObject:[newCell.device name]];
 					} else{
 						//displays the iphone if hideInternal is off
 						if(!hideInternal){
 							[subviewsToBeAdded addObject:newCell];
 							[deviceIdentifiers addObject:[newCell.device identifier]];
-							[deviceNames addObject:[newCell.device name]];
+							// [deviceNames addObject:[newCell.device name]];
 						}
 					}
 				}
@@ -845,12 +862,14 @@ void iOS14UpdateBattery(){
 				}
 				completion:^(BOOL finished) {
 					//when finished animate the outer layer to its percentage position
-					[subview newAnimateOuterLayerToCurrentPercentage];
-					[subviewsToBeAdded removeObject:subview];
+					if(finished){
+						[subview newAnimateOuterLayerToCurrentPercentage];
+						[subviewsToBeAdded removeObject:subview];
+						updateScrollWidthAndTouchPassthrough();
+					}
 				}];	
 			}
 		}
-		updateScrollWidthAndTouchPassthrough();
 
 
 
@@ -910,7 +929,7 @@ void iOS14UpdateBattery(){
 					completion:^(BOOL finished) {
 						[subview removeFromSuperview];
 						[deviceIdentifiers removeObject:[subview.device identifier]];
-						[deviceNames removeObject:subview.deviceName];			
+						// [deviceNames removeObject:subview.deviceName];			
 					}];	
 				}
 			}
@@ -945,7 +964,6 @@ void iOS14UpdateBattery(){
 //fade in the base Vaon view
 void fadeViewIn(UIView *view, CGFloat duration){
 	// stockHidden = TRUE;
-	NSLog(@"Vaon Fade In %i", stockHidden);
 
 	updateScrollWidthAndTouchPassthrough();
 
@@ -973,18 +991,18 @@ void fadeViewIn(UIView *view, CGFloat duration){
 	} completion:^(BOOL finished) {
 		if(view.alpha==1){
 			if([selectedModule isEqual:@"battery"]){
-				if(ios13){
-					updateBattery();
-				}
-				if(ios14){
-					iOS14UpdateBattery();
-				}
-				for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
-					if(finished){
+				if(finished){
+					for(VaonDeviceBatteryCell *subview in [batteryHStackView arrangedSubviews]){
 						if(firstSlideIn) {
 							[subview newAnimateOuterLayerToCurrentPercentage];
 						}
 						stockHidden = FALSE;
+					}
+					if(ios13){
+						updateBattery();
+					}
+					if(ios14){
+						iOS14UpdateBattery();
 					}
 				}
 			}
