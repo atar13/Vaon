@@ -14,7 +14,7 @@ iOS Jailbreak tweak that adds convenient battery information for Bluetooth devic
 
 ## Install
  
-Add [atar13.githbu.io/repo](https:/atar13.github.io/repo) to your favorite package manager and install from there or download a package from the [releases](https://github.com/atar13/Vaon/releases) tab on this repository. 
+Add [atar13.github.io/repo](https:/atar13.github.io/repo) to your favorite package manager and install from there or download a package from the [releases](https://github.com/atar13/Vaon/releases) tab on this repository. 
 
 ## Build
 Install Theos with an iOS 13.5 or later SDK and run: 
