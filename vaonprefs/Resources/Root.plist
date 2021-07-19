@@ -102,7 +102,7 @@
             <key>label</key>
             <string>Battery Configuration</string>
             <key>detail</key>
-            <string>BatteryPreferencesController</string>
+            <string>BatteryPreferenceController</string>
         </dict>
 		<dict>
 			<key>cell</key>

@@ -95,6 +95,9 @@ NSMutableArray *deviceNames = [[NSMutableArray alloc] init];
 NSMutableArray *deviceIdentifiers = [[NSMutableArray alloc] init];
 
 UIColor *normalBatteryColor = [UIColor colorWithRed:0.1882352941 green:0.8196078431 blue:0.3450980392 alpha: 1];
+UIColor *lowPowerModeColor = [UIColor colorWithRed:1 green:0.8 blue:0 alpha:1];
+UIColor *lowBatteryColor = [UIColor redColor];
+UIColor *darkGrayColor = [UIColor colorWithRed:0.1746478873 green:0.2039215686 blue:0.1960784314 alpha: 1];
 
 //timers to initiate animations
 NSTimer *delayedFadeInTimer = nil;
@@ -102,6 +105,29 @@ NSTimer *delayedPulsateTimer = nil;
 
 
 BOOL firstSlideIn = false;
+
+NSString *customConnectedDeviceColorMode;
+NSString *customConnectedDeviceColor;
+
+NSString *customDisconnectedDeviceColorMode;
+NSString *customDisconnectedDeviceColor;
+
+NSString *customLowPowerColorMode;
+NSString *customLowPowerColor;
+
+NSString *customLowBatteryColorMode;
+NSString *customLowBatteryColor;
+
+NSString *customChargingColorMode;
+NSString *customChargingColor;
+
+UIColor* colorFromHexString(NSString *hexString) {
+    unsigned rgbValue = 0;
+    NSScanner *scanner = [NSScanner scannerWithString:hexString];
+    [scanner setScanLocation:1]; // bypass '#' character
+    [scanner scanHexInt:&rgbValue];
+    return [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
+}
 
 //delegate for outline animation
 @implementation StrokeEndAnimationDelegate 
@@ -145,9 +171,6 @@ BOOL firstSlideIn = false;
 
 //Individual battery cell for each device
 @implementation VaonDeviceBatteryCell
-	UIColor *lowPowerModeColor = [UIColor colorWithRed:1 green:0.8 blue:0 alpha:1];
-	UIColor *lowBatteryColor = [UIColor redColor];
-	UIColor *brightGreen = [UIColor colorWithRed:0.1746478873 green:0.2039215686 blue:0.1960784314 alpha: 1];
 
 	//initialization
     -(instancetype)initWithFrame:(CGRect)arg1 device:(BCBatteryDevice *)connectedDevice {
@@ -359,16 +382,46 @@ BOOL firstSlideIn = false;
 	//updates the outline color depending on the device's charging/connected state
 	-(void)updateOutlineColor {
 		if([self isDeviceInternal] && [self isLowPowerModeOn] && ![self.device isCharging]){
-			self.circleOutlineLayer.strokeColor = lowPowerModeColor.CGColor;
+			if([customLowPowerColorMode isEqualToString:@"custom"]) {
+				self.circleOutlineLayer.strokeColor = colorFromHexString(customLowPowerColor).CGColor;
+			} else if([customLowPowerColorMode isEqualToString:@"system"]) {
+				self.circleOutlineLayer.strokeColor = [UIColor systemBlueColor].CGColor;
+			} else {
+				self.circleOutlineLayer.strokeColor = lowPowerModeColor.CGColor;
+			}
 		} else if([self isBatteryLow] && (![self.device isCharging])){
-			self.circleOutlineLayer.strokeColor = lowBatteryColor.CGColor;
+			if([customLowBatteryColorMode isEqualToString:@"custom"]) {
+				self.circleOutlineLayer.strokeColor = colorFromHexString(customLowPowerColor).CGColor;
+			} else if([customLowBatteryColorMode isEqualToString:@"system"]) {
+				self.circleOutlineLayer.strokeColor = [UIColor systemBlueColor].CGColor;
+			} else {
+				self.circleOutlineLayer.strokeColor = lowBatteryColor.CGColor;
+			}
 		} else if([self.device isCharging] && pulsateChargingOutline){
-			self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
-		} else {
-			if(![self.device isConnected]){
-				self.circleOutlineLayer.strokeColor = [UIColor systemGrayColor].CGColor;
+			if([customChargingColorMode isEqualToString:@"custom"]) {
+				self.circleOutlineLayer.strokeColor = colorFromHexString(customChargingColor).CGColor;
+			} else if([customChargingColorMode isEqualToString:@"system"]) {
+				self.circleOutlineLayer.strokeColor = [UIColor systemBlueColor].CGColor;
 			} else {
 				self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+			}
+		} else {
+			if(![self.device isConnected]){
+				if([customDisconnectedDeviceColorMode isEqualToString:@"custom"]) {
+					self.circleOutlineLayer.strokeColor = colorFromHexString(customDisconnectedDeviceColor).CGColor;
+				} else if([customDisconnectedDeviceColorMode isEqualToString:@"system"]) {
+					self.circleOutlineLayer.strokeColor = [UIColor systemBlueColor].CGColor;
+				} else {
+					self.circleOutlineLayer.strokeColor = [UIColor systemGrayColor].CGColor;
+				}
+			} else {
+				if([customConnectedDeviceColorMode isEqualToString:@"custom"]) {
+					self.circleOutlineLayer.strokeColor = colorFromHexString(customConnectedDeviceColor).CGColor;
+				} else if([customConnectedDeviceColorMode isEqualToString:@"system"]) {
+					self.circleOutlineLayer.strokeColor = [UIColor systemBlueColor].CGColor;
+				} else {
+					self.circleOutlineLayer.strokeColor = normalBatteryColor.CGColor;
+				}
 			}
 		}
 	}
@@ -388,15 +441,21 @@ BOOL firstSlideIn = false;
 			PulsateColorAnimationDelegate *brightToNormalDelegate = [[PulsateColorAnimationDelegate alloc] initWithCell:self nextAnimation:normalToBright];
 			brightToNormal.delegate = brightToNormalDelegate;
 
-			normalToBright.fromValue = id(normalBatteryColor.CGColor);
-			normalToBright.toValue = id(brightGreen.CGColor);
+			if([customChargingColorMode isEqualToString:@"custom"]) {
+				normalToBright.fromValue = id(colorFromHexString(customChargingColor).CGColor);
+			} else if([customChargingColorMode isEqualToString:@"system"]) {
+				normalToBright.fromValue = id([UIColor systemBlueColor].CGColor);
+			} else {
+				normalToBright.fromValue = id(normalBatteryColor.CGColor);
+			}
+			normalToBright.toValue = id(darkGrayColor.CGColor);
 			normalToBright.duration = 2;
 			normalToBright.timingFunction = animationColorTimingFunction;
 			[normalToBright setFillMode:kCAFillModeForwards];
 			[normalToBright setRemovedOnCompletion:FALSE];
 
 			brightToNormal.fromValue = normalToBright.toValue;
-			brightToNormal.toValue = id(normalBatteryColor.CGColor);
+			brightToNormal.toValue = normalToBright.fromValue; 
 			brightToNormal.duration = 2;
 			brightToNormal.timingFunction = animationColorTimingFunction;
 			[brightToNormal setFillMode:kCAFillModeForwards];
@@ -409,7 +468,13 @@ BOOL firstSlideIn = false;
 	//makes percentage label green if charging 
 	-(void)updatePercentageColor {
 		if([self.device isCharging]){
-			self.devicePercentageLabel.textColor = normalBatteryColor;
+			if([customChargingColorMode isEqualToString:@"custom"]) {
+				self.devicePercentageLabel.textColor = colorFromHexString(customChargingColor);
+			} else if([customChargingColorMode isEqualToString:@"system"]) {
+				self.devicePercentageLabel.textColor = [UIColor systemBlueColor];
+			} else {
+				self.devicePercentageLabel.textColor = normalBatteryColor;
+			}
 		}else {
 			self.devicePercentageLabel.textColor = [UIColor labelColor];
 		}
@@ -1595,6 +1660,21 @@ void updateSettings(){
 	[prefs registerFloat:&customGridSwitcherAppSize default:0.25 forKey:@"customGridSwitcherAppSize"];
 	[prefs registerBool:&customGridSwitcherSpacingEnabled default:FALSE forKey:@"customGridSwitcherSpacingEnabled"];
 	[prefs registerFloat:&customGridSwitcherSpacing default:40 forKey:@"customGridSwitcherSpacingEnabled"];
+
+	[prefs registerObject:&customConnectedDeviceColorMode default:@"default" forKey:@"customConnectedDeviceColorMode"];
+	[prefs registerObject:&customConnectedDeviceColor default:@"#33b5e5" forKey:@"customConnectedDeviceColor"];
+
+	[prefs registerObject:&customDisconnectedDeviceColorMode default:@"default" forKey:@"customDisconnectedDeviceColorMode"];
+	[prefs registerObject:&customDisconnectedDeviceColor default:@"#33b5e5" forKey:@"customDisconnectedDeviceColor"];
+
+	[prefs registerObject:&customLowPowerColorMode default:@"default" forKey:@"customLowPowerColorMode"];
+	[prefs registerObject:&customLowPowerColor default:@"#33b5e5" forKey:@"customLowPowerColor"];
+
+	[prefs registerObject:&customLowBatteryColorMode default:@"default" forKey:@"customLowBatteryColorMode"];
+	[prefs registerObject:&customLowBatteryColor default:@"#33b5e5" forKey:@"customLowBatteryColor"];
+
+	[prefs registerObject:&customChargingColorMode default:@"default" forKey:@"customChargingColorMode"];
+	[prefs registerObject:&customChargingColor default:@"#33b5e5" forKey:@"customChargingColor"];
 }
 
 %ctor {

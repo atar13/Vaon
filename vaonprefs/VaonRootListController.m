@@ -6,7 +6,73 @@ HBPreferences *prefs;
 NSArray *rootPreferenceKeys;
 NSArray *batteryPreferenceKeys;
 
-@implementation BatteryPreferencesController
+@implementation BatteryColorPreferenceController
+
+	// -(id)init {
+	// 	prefs = [[HBPreferences alloc] initWithIdentifier:@"com.atar13.vaonprefs"];
+	// 	return [super init];
+	// }
+
+	-(NSArray *)specifiers {
+		if (!_specifiers) {
+			_specifiers = [self loadSpecifiersFromPlistName:@"BatteryColor" target:self];
+		}
+
+		return _specifiers;
+	}
+	-(void)viewDidLoad {
+		[super viewDidLoad];
+		self.title = @"Battery Color Settings";
+	}
+	-(void)respring {
+		pid_t pid;
+		const char* args[] = {"killall", "-9", "backboardd", NULL};
+		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+	}
+
+	-(void)askBeforeRespring {
+			UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Are you sure you want to respring?" message:@"" preferredStyle:UIAlertControllerStyleAlert];
+			UIAlertAction* respringAction = [UIAlertAction actionWithTitle:@"Respring" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+				[self respring];
+			}];
+			UIAlertAction* laterAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action) {}];
+			[alert addAction:respringAction];
+			[alert addAction:laterAction];
+			[self presentViewController:alert animated:YES completion:nil];
+	}
+
+    -(void)viewWillAppear:(BOOL)animated {
+        [super viewWillAppear:animated];
+        UIBarButtonItem *respringButton = [[UIBarButtonItem alloc] initWithTitle:@"Respring" style:UIBarButtonItemStylePlain target:self action:@selector(askBeforeRespring)];
+        self.navigationItem.rightBarButtonItem = respringButton; 
+    }
+	-(void)prefsChangeAlert {
+			UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Respring is required" message:@"To apply this change you must respring your device" preferredStyle:UIAlertControllerStyleAlert];
+			UIAlertAction* respringAction = [UIAlertAction actionWithTitle:@"Respring" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+				[self respring];
+			}];
+			UIAlertAction* laterAction = [UIAlertAction actionWithTitle:@"Later" style:UIAlertActionStyleCancel handler:^(UIAlertAction * action) {}];
+			[alert addAction:respringAction];
+			[alert addAction:laterAction];
+			[self presentViewController:alert animated:YES completion:nil];
+	}
+
+	// -(void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier{
+	// 	[super setPreferenceValue:value specifier:specifier];
+	// 	if((BOOL)specifier.properties[@"value"]==[prefs boolForKey:specifier.properties[@"key"]]){
+	// 		if([batteryPreferenceKeys containsObject:specifier.properties[@"key"]]){
+	// 			// [self prefsChangeAlert];
+	// 		}
+	// 	}
+	// }
+
+
+    
+
+@end
+
+
+@implementation BatteryPreferenceController
 
 	// -(id)init {
 	// 	prefs = [[HBPreferences alloc] initWithIdentifier:@"com.atar13.vaonprefs"];

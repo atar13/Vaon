@@ -199,3 +199,7 @@
 
 // @interface UIBlurEffect : UIVisualEffect
 // @end
+
+@interface _UIBackdropViewSettings : NSObject {}
+- (id) colorTint;
+@end

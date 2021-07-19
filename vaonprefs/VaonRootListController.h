@@ -6,7 +6,10 @@
 @interface VaonRootListController : PSListController
 @end
 
-@interface BatteryPreferencesController : PSListController
+@interface BatteryPreferenceController : PSListController
+@end
+
+@interface BatteryColorPreferenceController : PSListController
 @end
 
 @protocol PreferencesTableImageView

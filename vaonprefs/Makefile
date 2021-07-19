@@ -13,5 +13,6 @@ VaonPrefs_PRIVATE_FRAMEWORKS = Preferences
 VaonPrefs_INSTALL_PATH = /Library/PreferenceBundles
 VaonPrefs_CFLAGS = -fobjc-arc
 VaonPrefs_EXTRA_FRAMEWORKS = Cephei CepheiPrefs
+VaonPrefs_LIBRARIES = colorpicker
 
 include $(THEOS_MAKE_PATH)/bundle.mk
