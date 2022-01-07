@@ -26,6 +26,8 @@ BOOL hideAppIcons;
 BOOL hideSuggestionBanner;
 BOOL displayWithNoApps;
 
+NSString *backgroundMode = nil;
+
 BOOL enableFlyInOut;
 BOOL enableDelay;
 CGFloat fadeInDelay;
@@ -52,6 +54,7 @@ BOOL enableBoldPercentage;
 BOOL roundOutlineCorners;
 BOOL pulsateChargingOutline;
 BOOL keepDisconnectedDevices;
+NSString *batteryGlyphBackgroundMode = nil;
 BOOL customDeviceGlyphSizeEnabled;
 CGFloat customDeviceGlyphSize;
 BOOL customBatteryCellSizeEnabled;
@@ -201,8 +204,14 @@ UIColor* colorFromHexString(NSString *hexString) {
         self.translatesAutoresizingMaskIntoConstraints = FALSE;
 
     
-		//initialize bakcground blur effect
-		self.circleBackgroundBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+		//initialize background blur effect
+		if ([batteryGlyphBackgroundMode isEqualToString:@"system"]) {
+			self.circleBackgroundBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterial];
+		} else if ([batteryGlyphBackgroundMode isEqualToString:@"dark"]) {
+			self.circleBackgroundBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark];
+		} else if ([batteryGlyphBackgroundMode isEqualToString:@"light"]) {
+			self.circleBackgroundBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialLight];
+		}
         self.circleBackgroundVisualEffectView = [[UIVisualEffectView alloc] initWithEffect:self.circleBackgroundBlurEffect];
         self.circleBackgroundVisualEffectView.layer.cornerRadius = self.cellWidth/2;
         self.circleBackgroundVisualEffectView.clipsToBounds = TRUE;
@@ -286,9 +295,15 @@ UIColor* colorFromHexString(NSString *hexString) {
 			//COMMENT THIS BACK IN
 			self.deviceGlyphView = [[UIImageView alloc] initWithImage:[connectedDevice batteryWidgetGlyph]];
 			self.deviceGlyphView.image = [self.deviceGlyphView.image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-			[self.deviceGlyphView setTintColor:[UIColor labelColor]];
 		} else {
         	self.deviceGlyphView = [[UIImageView alloc] initWithImage:connectedDevice.glyph];
+		}
+		if ([batteryGlyphBackgroundMode isEqualToString:@"system"]) {
+			[self.deviceGlyphView setTintColor:[UIColor labelColor]];
+		} else if ([batteryGlyphBackgroundMode isEqualToString:@"dark"]) {
+			[self.deviceGlyphView setTintColor:[UIColor lightTextColor]];
+		} else if ([batteryGlyphBackgroundMode isEqualToString:@"light"]) {
+			[self.deviceGlyphView setTintColor:[UIColor darkTextColor]];
 		}
 
 		CGFloat glyphAspectRatio = self.deviceGlyphView.frame.size.width/self.deviceGlyphView.frame.size.height;
@@ -644,7 +659,13 @@ void initBatteryView(UIView *view){
 //initialize the base background blur view 
 void initBaseVaonView(UIView* view) {
 	vaonViewBackgroundColor = [UIColor colorNamed:@"clearColor"];
-	blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
+	if ([backgroundMode isEqualToString:@"system"]) {
+		blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterial];
+	} else if ([backgroundMode isEqualToString:@"dark"]) {
+		blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialDark];
+	} else if ([backgroundMode isEqualToString:@"light"]) {
+		blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemMaterialLight];
+	}
 	titleLabel = [[UILabel alloc] initWithFrame:view.bounds];
 	view.clipsToBounds = TRUE;
 	view.layer.cornerRadius = vaonViewCornerRadius;
@@ -1627,6 +1648,8 @@ void updateSettings(){
 	[prefs registerBool:&hideSuggestionBanner default:TRUE forKey:@"hideSuggestionBanner"];
 	[prefs registerBool:&displayWithNoApps default:TRUE forKey:@"displayWithNoApps"];
 
+	[prefs registerObject:&backgroundMode default:@"system" forKey:@"backgroundMode"];
+
 	[prefs registerBool:&enableFlyInOut default:TRUE forKey:@"enableFlyInOut"];
 	[prefs registerBool:&enableDelay default:FALSE forKey:@"enableDelay"];
 	[prefs registerFloat:&fadeInDelay default:0.5 forKey:@"fadeInDelay"];
@@ -1647,6 +1670,7 @@ void updateSettings(){
 	[prefs registerBool:&roundOutlineCorners default:TRUE forKey:@"roundOutlineCorners"];
 	[prefs registerBool:&pulsateChargingOutline default:TRUE forKey:@"pulsateChargingOutline"];
 	[prefs registerBool:&keepDisconnectedDevices default:TRUE forKey:@"keepDisconnectedDevices"];
+	[prefs registerObject:&batteryGlyphBackgroundMode default:@"system" forKey:@"batteryGlyphBackgroundMode"];
 	[prefs registerBool:&customDeviceGlyphSizeEnabled default:FALSE forKey:@"customDeviceGlyphSizeEnabled"];
 	[prefs registerFloat:&customDeviceGlyphSize default:30 forKey:@"customDeviceGlyphSize"];
 	[prefs registerBool:&customBatteryCellSizeEnabled default:FALSE forKey:@"customBatteryCellSizeEnabled"];
