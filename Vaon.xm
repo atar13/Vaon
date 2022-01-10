@@ -54,6 +54,7 @@ BOOL enableBoldPercentage;
 BOOL roundOutlineCorners;
 BOOL pulsateChargingOutline;
 BOOL keepDisconnectedDevices;
+NSString *batteryTextColor = nil;
 NSString *batteryGlyphBackgroundMode = nil;
 BOOL customDeviceGlyphSizeEnabled;
 CGFloat customDeviceGlyphSize;
@@ -240,6 +241,7 @@ UIColor* colorFromHexString(NSString *hexString) {
 		}
         self.devicePercentageLabel.font = devicePercentageLabelFont;
         self.devicePercentageLabel.frame = self.bounds;
+		self.devicePercentageLabel.textColor = normalBatteryColor;
         // self.devicePercentageLabel.clipsToBounds = TRUE;
 
 		// self.devicePercentageLabel.layoutMargins = UIEdgeInsetsMake(0, 0, -20, 0);
@@ -491,7 +493,14 @@ UIColor* colorFromHexString(NSString *hexString) {
 				self.devicePercentageLabel.textColor = normalBatteryColor;
 			}
 		}else {
-			self.devicePercentageLabel.textColor = [UIColor labelColor];
+			// self.devicePercentageLabel.textColor = [UIColor labelColor];
+			if ([batteryTextColor isEqualToString:@"system"]) {
+				self.devicePercentageLabel.textColor = [UIColor labelColor];
+			} else if ([batteryTextColor isEqualToString:@"dark"]) {
+				self.devicePercentageLabel.textColor = [UIColor darkTextColor];
+			} else if ([batteryTextColor isEqualToString:@"light"]) {
+				self.devicePercentageLabel.textColor = [UIColor lightTextColor];
+			}
 		}
 	}
 
@@ -1670,6 +1679,7 @@ void updateSettings(){
 	[prefs registerBool:&roundOutlineCorners default:TRUE forKey:@"roundOutlineCorners"];
 	[prefs registerBool:&pulsateChargingOutline default:TRUE forKey:@"pulsateChargingOutline"];
 	[prefs registerBool:&keepDisconnectedDevices default:TRUE forKey:@"keepDisconnectedDevices"];
+	[prefs registerObject:&batteryTextColor default:@"system" forKey:@"batteryTextColor"];
 	[prefs registerObject:&batteryGlyphBackgroundMode default:@"system" forKey:@"batteryGlyphBackgroundMode"];
 	[prefs registerBool:&customDeviceGlyphSizeEnabled default:FALSE forKey:@"customDeviceGlyphSizeEnabled"];
 	[prefs registerFloat:&customDeviceGlyphSize default:30 forKey:@"customDeviceGlyphSize"];

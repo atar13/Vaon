@@ -104,6 +104,34 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
+			<string>Battery Percentage Text Color Mode</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>key</key>
+			<string>batteryTextColor</string>
+			<key>default</key>
+			<string>system</string>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>validTitles</key>
+			<array>
+				<string>System</string>
+				<string>Dark</string>
+				<string>Light</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>system</string>
+				<string>dark</string>
+				<string>light</string>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
 			<string>Battery Glyph Background Mode</string>
 		</dict>
 		<dict>
