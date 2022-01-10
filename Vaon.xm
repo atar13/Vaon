@@ -13,6 +13,10 @@
 
 HBPreferences *prefs;
 
+#define BATTERY_STATE_FILE @"/var/mobile/Library/Preferences/com.atar13.vaonprefs.plist"
+NSDictionary *batteryDict = [NSDictionary dictionaryWithContentsOfFile:BATTERY_STATE_FILE];
+NSMutableDictionary *mutableBatteryDict = batteryDict ? [batteryDict mutableCopy] : [NSMutableDictionary dictionary];
+
 BOOL ios13;
 BOOL ios14;
 
@@ -179,6 +183,8 @@ UIColor* colorFromHexString(NSString *hexString) {
 
 	//initialization
     -(instancetype)initWithFrame:(CGRect)arg1 device:(BCBatteryDevice *)connectedDevice {
+		// need to make another init method if there's no device provided when retrieving saved devices or have logic to handle that
+		// need to change everywhere where self.device is used
         self.device = connectedDevice;
 		self.disconnected = FALSE;
 		if(customBatteryCellSizeEnabled){
@@ -360,7 +366,7 @@ UIColor* colorFromHexString(NSString *hexString) {
     }
 
     -(long long)getDevicePercentage {
-        return [self.device percentCharge];
+        return self.devicePercentage;
     }
 
 	-(void)updateDevicePercentage {
@@ -731,6 +737,15 @@ void updateScrollWidthAndTouchPassthrough() {
 
 }
 
+void saveBatteryState(NSString* identifier, long long percentage) {
+	NSMutableDictionary *batteryVals = mutableBatteryDict ? [mutableBatteryDict valueForKey:@"batteries"] : [NSMutableDictionary dictionary];
+	NSDictionary *newBatteryVal = [NSDictionary dictionaryWithObjectsAndKeys: [NSString stringWithFormat:@"%lld", percentage], identifier, nil];
+	[batteryVals addEntriesFromDictionary: newBatteryVal];
+
+	[mutableBatteryDict setValue:batteryVals forKey:@"batteries"];
+	[mutableBatteryDict writeToFile:BATTERY_STATE_FILE atomically:YES];
+}
+
 //updates battery information 
 void updateBattery(){
 	//access main loop
@@ -864,6 +879,7 @@ void updateBattery(){
 				[subview updatePercentageColor];
 				[subview updateDevicePercentage];
 			}
+			saveBatteryState(subview.deviceIdentifier, subview.devicePercentage);
 		}
 
 	}); 
@@ -1050,6 +1066,7 @@ void iOS14UpdateBattery(){
 				[subview updatePercentageColor];
 				[subview updateDevicePercentage];
 			}
+			saveBatteryState(subview.deviceIdentifier, subview.devicePercentage);
 			// }
 		}
 
