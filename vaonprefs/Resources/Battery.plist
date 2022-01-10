@@ -120,13 +120,33 @@
 				<string>System</string>
 				<string>Dark</string>
 				<string>Light</string>
+				<string>Custom</string>
 			</array>
 			<key>validValues</key>
 			<array>
 				<string>system</string>
 				<string>dark</string>
 				<string>light</string>
+				<string>custom</string>
 			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>cellClass</key>
+			<string>HBColorPickerTableCell</string>
+			<key>defaults</key>
+			<string>com.atar13.vaonprefs</string>
+			<key>key</key>
+			<string>customBatteryTextColor</string>
+			<key>default</key>
+			<string>#ffffff</string>
+			<key>label</key>
+			<string>Custom Percentage Text Color</string>
+			<key>showAlphaSlider</key>
+			<true/>
+			<key>PostNotification</key>
+			<string>com.atar13.vaonprefs/ReloadPrefs</string>
 		</dict>
 		<dict>
 			<key>cell</key>

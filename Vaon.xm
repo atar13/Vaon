@@ -55,6 +55,7 @@ BOOL roundOutlineCorners;
 BOOL pulsateChargingOutline;
 BOOL keepDisconnectedDevices;
 NSString *batteryTextColor = nil;
+NSString *customBatteryTextColor = nil;
 NSString *batteryGlyphBackgroundMode = nil;
 BOOL customDeviceGlyphSizeEnabled;
 CGFloat customDeviceGlyphSize;
@@ -497,9 +498,11 @@ UIColor* colorFromHexString(NSString *hexString) {
 			if ([batteryTextColor isEqualToString:@"system"]) {
 				self.devicePercentageLabel.textColor = [UIColor labelColor];
 			} else if ([batteryTextColor isEqualToString:@"dark"]) {
-				self.devicePercentageLabel.textColor = [UIColor darkTextColor];
+				self.devicePercentageLabel.textColor = [UIColor blackColor];
 			} else if ([batteryTextColor isEqualToString:@"light"]) {
-				self.devicePercentageLabel.textColor = [UIColor lightTextColor];
+				self.devicePercentageLabel.textColor = [UIColor whiteColor];
+			} else if ([batteryTextColor isEqualToString:@"custom"]) {
+				self.devicePercentageLabel.textColor = colorFromHexString(customBatteryTextColor);
 			}
 		}
 	}
@@ -1680,6 +1683,7 @@ void updateSettings(){
 	[prefs registerBool:&pulsateChargingOutline default:TRUE forKey:@"pulsateChargingOutline"];
 	[prefs registerBool:&keepDisconnectedDevices default:TRUE forKey:@"keepDisconnectedDevices"];
 	[prefs registerObject:&batteryTextColor default:@"system" forKey:@"batteryTextColor"];
+	[prefs registerObject:&customBatteryTextColor default:@"#ffffff" forKey:@"customBatteryTextColor"];
 	[prefs registerObject:&batteryGlyphBackgroundMode default:@"system" forKey:@"batteryGlyphBackgroundMode"];
 	[prefs registerBool:&customDeviceGlyphSizeEnabled default:FALSE forKey:@"customDeviceGlyphSizeEnabled"];
 	[prefs registerFloat:&customDeviceGlyphSize default:30 forKey:@"customDeviceGlyphSize"];
