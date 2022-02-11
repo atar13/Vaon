@@ -65,6 +65,8 @@ BOOL customPercentageFontSizeEnabled;
 CGFloat customPercentageFontSize;
 BOOL paddingBetweenGlyphAndLabelEnabled;
 CGFloat paddingBetweenGlyphAndLabel;
+BOOL horizontalSpacingBetweenDevicesEnabled;
+CGFloat horizontalSpacingBetweenDevices;
 
 UIView *vaonView;
 UIView *vaonGridView;
@@ -590,7 +592,11 @@ void initBatteryView(UIView *view){
 	batteryHStackView.axis = UILayoutConstraintAxisHorizontal;
 	batteryHStackView.alignment = UIStackViewAlignmentCenter;
 	batteryHStackView.distribution = UIStackViewDistributionFill;
-	batteryHStackView.spacing = 30;
+	if(horizontalSpacingBetweenDevicesEnabled) {
+		batteryHStackView.spacing = horizontalSpacingBetweenDevices;
+	} else {
+		batteryHStackView.spacing = 30;
+	}
 
 	//gather bluetooth battery information
 	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
@@ -1693,6 +1699,8 @@ void updateSettings(){
 	[prefs registerFloat:&customPercentageFontSize default:12 forKey:@"customPercentageFontSize"];
 	[prefs registerBool:&paddingBetweenGlyphAndLabelEnabled default:FALSE forKey:@"paddingBetweenGlyphAndLabelEnabled"];
 	[prefs registerFloat:&paddingBetweenGlyphAndLabel default:0 forKey:@"paddingBetweenGlyphAndLabel"];
+	[prefs registerBool:&horizontalSpacingBetweenDevicesEnabled default:FALSE forKey:@"horizontalSpacingBetweenDevicesEnabled"];
+	[prefs registerFloat:&horizontalSpacingBetweenDevices default:30 forKey:@"horizontalSpacingBetweenDevices"];
 
 	[prefs registerBool:&customGridSwitcherAppSizeEnabled default:FALSE forKey:@"customGridSwitcherAppSizeEnabled"];
 	[prefs registerFloat:&customGridSwitcherAppSize default:0.25 forKey:@"customGridSwitcherAppSize"];
