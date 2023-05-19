@@ -2,7 +2,7 @@
 
 //maybe check if the user is going back to the previous value a specifier was at before prompting the alert to repsring
 //make a new HBPrefs
-HBPreferences *prefs;
+NSUserDefaults *prefs;
 NSArray *rootPreferenceKeys;
 NSArray *batteryPreferenceKeys;
 
@@ -27,7 +27,7 @@ NSArray *batteryPreferenceKeys;
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
 	}
 
 	-(void)askBeforeRespring {
@@ -93,7 +93,7 @@ NSArray *batteryPreferenceKeys;
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
 	}
 
 	-(void)askBeforeRespring {
@@ -125,7 +125,7 @@ NSArray *batteryPreferenceKeys;
 
 	-(void)setPreferenceValue:(id)value specifier:(PSSpecifier*)specifier{
 		[super setPreferenceValue:value specifier:specifier];
-		if((BOOL)specifier.properties[@"value"]==[prefs boolForKey:specifier.properties[@"key"]]){
+		if((BOOL)specifier.properties[@"value"]==[[prefs objectForKey:specifier.properties[@"key"]] boolValue]){
 			if([batteryPreferenceKeys containsObject:specifier.properties[@"key"]]){
 				// [self prefsChangeAlert];
 			}
@@ -140,7 +140,7 @@ NSArray *batteryPreferenceKeys;
 @implementation VaonRootListController
 	//-(id)readPreferenceValue:(PSSpecifier*)specifier; use this to get the current modele selected and make a method that returns it and passes it into the pslinkcell in root.plist
 	-(id)init {
-		prefs = [[HBPreferences alloc] initWithIdentifier:@"com.atar13.vaonprefs"];
+		prefs = [[NSUserDefaults alloc] initWithSuiteName:@"com.atar13.vaonprefs"];
 		rootPreferenceKeys = @[
 			@"isEnabled", 
 			@"switcherMode", 
@@ -182,7 +182,7 @@ NSArray *batteryPreferenceKeys;
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
 	}
 	-(void)askBeforeRespring {
 		UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Are you sure you want to respring?" message:@"" preferredStyle:UIAlertControllerStyleAlert];
@@ -252,7 +252,7 @@ NSArray *batteryPreferenceKeys;
 		if([rootPreferenceKeys containsObject:specifier.properties[@"key"]]){
 
 			if([specifier.properties[@"cell"] isEqual:@"PSSwitchCell"]){
-				if(!(BOOL)specifier.properties[@"value"]==[prefs boolForKey:specifier.properties[@"key"]]){
+				if(!(BOOL)specifier.properties[@"value"]==[[prefs objectForKey:specifier.properties[@"key"]] boolValue]){
 						// [self prefsChangeAlert];
 				}
 			}
@@ -274,7 +274,7 @@ NSArray *batteryPreferenceKeys;
 		if(self){
 		CGRect frame = CGRectMake(0, 2, [[UIScreen mainScreen] bounds].size.width, 60);
 
-        NSString *customImagePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/VaonPrefs.bundle/images/email/emailIcon@3x.png"];
+        NSString *customImagePath = [NSString stringWithFormat:@"/var/jb/Library/PreferenceBundles/VaonPrefs.bundle/images/email/emailIcon@3x.png"];
 		image = [[UIImage alloc] initWithContentsOfFile:customImagePath];
 		if(image == nil){
 			UILabel *label = [[UILabel alloc] initWithFrame:frame];

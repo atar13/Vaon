@@ -1,4 +1,3 @@
-#import <Cephei/HBPreferences.h>
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SpringBoard.h>
