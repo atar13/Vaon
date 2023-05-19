@@ -1810,4 +1810,14 @@ void updateSettings(){
 		// NSLog(@"%s", "Vaon: Initializing ios 14 battery update hooks");
 
 	}
+/**
+Additional modules:
+favorite contacts or an option for recents
+device batteries
+favorited apps
+music player when you 
+countdown 
+airpod pro transparency and noise cancellation
+weather/AQI view that's similar to battery view
+**/
 }
