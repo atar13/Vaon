@@ -27,7 +27,7 @@ NSArray *batteryPreferenceKeys;
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
 	}
 
 	-(void)askBeforeRespring {
@@ -93,7 +93,7 @@ NSArray *batteryPreferenceKeys;
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
 	}
 
 	-(void)askBeforeRespring {
@@ -182,7 +182,7 @@ NSArray *batteryPreferenceKeys;
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
 	}
 	-(void)askBeforeRespring {
 		UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Are you sure you want to respring?" message:@"" preferredStyle:UIAlertControllerStyleAlert];
@@ -274,7 +274,7 @@ NSArray *batteryPreferenceKeys;
 		if(self){
 		CGRect frame = CGRectMake(0, 2, [[UIScreen mainScreen] bounds].size.width, 60);
 
-        NSString *customImagePath = [NSString stringWithFormat:@"/var/jb/Library/PreferenceBundles/VaonPrefs.bundle/images/email/emailIcon@3x.png"];
+        NSString *customImagePath = [NSString stringWithFormat:@"/Library/PreferenceBundles/VaonPrefs.bundle/images/email/emailIcon@3x.png"];
 		image = [[UIImage alloc] initWithContentsOfFile:customImagePath];
 		if(image == nil){
 			UILabel *label = [[UILabel alloc] initWithFrame:frame];
