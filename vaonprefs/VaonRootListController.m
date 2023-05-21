@@ -1,10 +1,26 @@
 #include "VaonRootListController.h"
 
 //maybe check if the user is going back to the previous value a specifier was at before prompting the alert to repsring
-//make a new HBPrefs
+//make a new NSUserDefauls
 NSUserDefaults *prefs;
 NSArray *rootPreferenceKeys;
 NSArray *batteryPreferenceKeys;
+
+//Function to check if an alias exists at a path
+BOOL aliasExistsAtPath(NSString *path) {
+    NSURL *url = [NSURL fileURLWithPath:path];
+    NSError *error;
+    BOOL isAlias = [url checkResourceIsReachableAndReturnError:&error];
+    
+    if (isAlias) {
+        return YES;
+    } else if (!isAlias && error.code == NSFileReadNoSuchFileError) {
+        return NO;
+    } else {
+        NSLog(@"Error: %@", error);
+        return NO;
+    }
+}
 
 @implementation BatteryColorPreferenceController
 
@@ -27,7 +43,11 @@ NSArray *batteryPreferenceKeys;
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		if (aliasExistsAtPath(@"/var/jb")){
+			posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		} else{
+			posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		}
 	}
 
 	-(void)askBeforeRespring {
@@ -93,7 +113,11 @@ NSArray *batteryPreferenceKeys;
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		if (aliasExistsAtPath(@"/var/jb")){
+			posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		} else{
+			posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		}
 	}
 
 	-(void)askBeforeRespring {
@@ -182,7 +206,11 @@ NSArray *batteryPreferenceKeys;
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		if (aliasExistsAtPath(@"/var/jb")){
+			posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		} else{
+			posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
+		}
 	}
 	-(void)askBeforeRespring {
 		UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Are you sure you want to respring?" message:@"" preferredStyle:UIAlertControllerStyleAlert];

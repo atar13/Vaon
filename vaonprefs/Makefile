@@ -1,8 +1,3 @@
-ARCHS = arm64 arm64e
-SDKVERSION = 14.5
-TARGET := iphone:clang:latest:14.0
-SYSROOT = $(THEOS)/sdks/iPhoneOS14.5.sdk
-
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = VaonPrefs
