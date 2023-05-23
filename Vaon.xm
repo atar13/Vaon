@@ -598,7 +598,7 @@ void initBatteryView(UIView *view){
 	}
 
 	//gather bluetooth battery information
-	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
 
 	//adds to the view hierarchy
 	[view addSubview:batteryScrollView];
@@ -760,7 +760,7 @@ void updateBattery(){
 		// }
 
 		//update list of bluetooth devices
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
 		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
 
@@ -908,7 +908,7 @@ void iOS14UpdateBattery(){
 
 
 		//update list of bluetooth devices
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
 		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
 
