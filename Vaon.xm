@@ -599,7 +599,7 @@ void initBatteryView(UIView *view){
 	}
 
 	//gather bluetooth battery information
-	if (ios15) {
+	if (kCFCoreFoundationVersionNumber > 1850) {
 		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
 	} else {
 		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
