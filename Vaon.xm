@@ -14,6 +14,7 @@ NSUserDefaults *prefs;
 
 BOOL ios13;
 BOOL ios14;
+BOOL ios15;
 
 //main page preference variables
 BOOL isEnabled;
@@ -598,7 +599,11 @@ void initBatteryView(UIView *view){
 	}
 
 	//gather bluetooth battery information
-	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
+	if (ios15) {
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
+	} else {
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+	}
 
 	//adds to the view hierarchy
 	[view addSubview:batteryScrollView];
@@ -760,7 +765,11 @@ void updateBattery(){
 		// }
 
 		//update list of bluetooth devices
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
+		if (ios15) {
+			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
+		} else {
+			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		}
 		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
 
@@ -908,7 +917,11 @@ void iOS14UpdateBattery(){
 
 
 		//update list of bluetooth devices
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
+		if (ios15) {
+			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
+		} else {
+			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		}
 		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
 
@@ -1779,17 +1792,22 @@ void updateSettings(){
 		currentSwitcherStyle = 0;
 	}
 
-
-
-	if(kCFCoreFoundationVersionNumber > 1750){
+	if(kCFCoreFoundationVersionNumber > 1850) {
+		ios15 = true;
+		ios14 = false;
 		ios13 = false;
+	} else if(kCFCoreFoundationVersionNumber > 1750){
+		ios15 = false;
 		ios14 = true;
-	} else if(kCFCoreFoundationVersionNumber > 1600) {
-		ios13 = true;
-		ios14 = false;
-	} else {
 		ios13 = false;
+	} else if(kCFCoreFoundationVersionNumber > 1600) {
+		ios15 = false;
 		ios14 = false;
+		ios13 = true;
+	} else {
+		ios15 = false;
+		ios14 = false;
+		ios13 = false;
 	}
 
 
