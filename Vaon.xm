@@ -599,7 +599,7 @@ void initBatteryView(UIView *view){
 	}
 
 	//gather bluetooth battery information
-	if (kCFCoreFoundationVersionNumber > 1850) {
+	if (ios15) {
 		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
 	} else {
 		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
@@ -1788,24 +1788,25 @@ void updateSettings(){
 
 	if([switcherMode isEqual:@"grid"]){
 		customSwitcherStyle = 2;
+		currentSwitcherStyle = 2;
 	}else{
+		customSwitcherStyle = 0;
 		currentSwitcherStyle = 0;
 	}
 
+	//Sketchy but it seems to work
 	if(kCFCoreFoundationVersionNumber > 1850) {
 		ios15 = true;
-		ios14 = false;
-		ios13 = false;
-	} else if(kCFCoreFoundationVersionNumber > 1750){
+	} else {
 		ios15 = false;
+	}
+	if(kCFCoreFoundationVersionNumber > 1750){
 		ios14 = true;
 		ios13 = false;
 	} else if(kCFCoreFoundationVersionNumber > 1600) {
-		ios15 = false;
 		ios14 = false;
 		ios13 = true;
 	} else {
-		ios15 = false;
 		ios14 = false;
 		ios13 = false;
 	}
