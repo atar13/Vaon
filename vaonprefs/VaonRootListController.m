@@ -238,6 +238,13 @@ BOOL aliasExistsAtPath(NSString *path) {
 		completionHandler:nil];
 	}
 
+	- (void)twitterKeycap {
+		[[UIApplication sharedApplication] 
+			openURL:[NSURL URLWithString:@"https://twitter.com/singlekeycap"] 
+			options:@{} 
+		completionHandler:nil];
+	}
+
 	-(void)email{
 		[[UIApplication sharedApplication] 
 			openURL:[NSURL URLWithString:@"mailto:atar13dev@gmail.com"] 
