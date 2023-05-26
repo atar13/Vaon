@@ -7,14 +7,14 @@
 
 #import "Vaon.h"
 #import <UIKit/UIKit.h>
-#import <Cephei/HBPreferences.h>
 // #import <Foundation/Foundation.h>
 
 
-HBPreferences *prefs;
+NSUserDefaults *prefs;
 
 BOOL ios13;
 BOOL ios14;
+BOOL ios15;
 
 //main page preference variables
 BOOL isEnabled;
@@ -599,7 +599,11 @@ void initBatteryView(UIView *view){
 	}
 
 	//gather bluetooth battery information
-	connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+	if (ios15) {
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
+	} else {
+		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+	}
 
 	//adds to the view hierarchy
 	[view addSubview:batteryScrollView];
@@ -761,7 +765,11 @@ void updateBattery(){
 		// }
 
 		//update list of bluetooth devices
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		if (ios15) {
+			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
+		} else {
+			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		}
 		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
 
@@ -909,7 +917,11 @@ void iOS14UpdateBattery(){
 
 
 		//update list of bluetooth devices
-		connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		if (ios15) {
+			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) _sharedPowerSourceController] connectedDevices];
+		} else {
+			connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] connectedDevices];
+		}
 		// connectedBluetoothDevices = [[%c(BCBatteryDeviceController) sharedInstance] _sortedDevices];
 		NSMutableArray *subviewsToBeAdded = [[NSMutableArray alloc] init];
 
@@ -1657,93 +1669,146 @@ void fadeViewOut(UIView *view, CGFloat duration){
 
 
 void updateSettings(){
-	[prefs registerBool:&isEnabled default:TRUE forKey:@"isEnabled"];
-	[prefs registerObject:&switcherMode default:@"grid" forKey:@"switcherMode"];
-	[prefs registerObject:&selectedModule default:@"battery" forKey:@"moduleSelection"];
-	[prefs registerBool:&hideBackground default:FALSE forKey:@"hideBackground"];
-	[prefs registerBool:&hideAppTitles default:FALSE forKey:@"hideAppTitles"];
-	[prefs registerBool:&hideAppIcons default:FALSE forKey:@"hideAppIcons"];
-	[prefs registerBool:&hideSuggestionBanner default:TRUE forKey:@"hideSuggestionBanner"];
-	[prefs registerBool:&displayWithNoApps default:TRUE forKey:@"displayWithNoApps"];
+	[prefs registerDefaults:@{
+		@"isEnabled": @TRUE,
+		@"switcherMode": @"grid",
+		@"moduleSelection": @"battery",
+		@"hideBackground": @FALSE,
+		@"hideAppTitles": @FALSE,
+		@"hideAppIcons": @FALSE,
+		@"hideSuggestionBanner": @TRUE,
+		@"displayWithNoApps": @TRUE,
+		@"backgroundMode": @"system",
+		@"enableFlyInOut": @TRUE,
+		@"enableDelay": @FALSE,
+		@"fadeInDelay": @0.5,
+		@"customHeightEnabled": @FALSE,
+		@"customHeight": @113,
+		@"customWidthEnabled": @FALSE,
+		@"customWidth": @400,
+		@"customVerticalOffsetEnabled": @FALSE,
+		@"customVerticalOffset": @-80,
+		@"customHorizontalOffsetEnabled": @FALSE,
+		@"customHorizontalOffset": @0,
+		@"hideInternal": @FALSE,
+		@"hidePercentageLabel": @FALSE,
+		@"hidePercent": @FALSE,
+		@"enableBoldPercentage": @TRUE,
+		@"roundOutlineCorners": @TRUE,
+		@"pulsateChargingOutline": @TRUE,
+		@"keepDisconnectedDevices": @TRUE,
+		@"batteryTextColor": @"system",
+		@"customBatteryTextColor": @"#FFFFFF",
+		@"batteryGlyphBackgroundMode": @"system",
+		@"customDeviceGlyphSizeEnabled": @FALSE,
+		@"customDeviceGlyphSize": @30,
+		@"customBatteryCellSizeEnabled": @FALSE,
+		@"customBatteryCellSize": @50,
+		@"customPercentageFontSizeEnabled": @FALSE,
+		@"customPercentageFontSize": @12,
+		@"paddingBetweenGlyphAndLabelEnabled": @FALSE,
+		@"paddingBetweenGlyphAndLabel": @0,
+		@"horizontalSpacingBetweenDevicesEnabled": @FALSE,
+		@"horizontalSpacingBetweenDevices": @30,
+		@"customGridSwitcherAppSizeEnabled": @FALSE,
+		@"customGridSwitcherAppSize": @0.25,
+		@"customGridSwitcherSpacingEnabled": @FALSE,
+		@"customGridSwitcherSpacing": @40,
+		@"customConnectedDeviceColorMode": @"default",
+		@"customConnectedDeviceColor": @"#33b5e5",
+		@"customDisconnectedDeviceColorMode": @"default",
+		@"customDisconnectedDeviceColor": @"#33b5e5",
+		@"customLowPowerColorMode": @"default",
+		@"customLowPowerColor": @"#33b5e5",
+		@"customLowBatteryColorMode": @"default",
+		@"customLowBatteryColor": @"#33b5e5",
+		@"customChargingColorMode": @"default",
+		@"customChargingColor": @"#33b5e5"
+	}];
 
-	[prefs registerObject:&backgroundMode default:@"system" forKey:@"backgroundMode"];
-
-	[prefs registerBool:&enableFlyInOut default:TRUE forKey:@"enableFlyInOut"];
-	[prefs registerBool:&enableDelay default:FALSE forKey:@"enableDelay"];
-	[prefs registerFloat:&fadeInDelay default:0.5 forKey:@"fadeInDelay"];
-
-	[prefs registerBool:&customHeightEnabled default:FALSE forKey:@"customHeightEnabled"];
-	[prefs registerFloat:&customHeight default:113 forKey:@"customHeight"];
-	[prefs registerBool:&customWidthEnabled default:FALSE forKey:@"customWidthEnabled"];
-	[prefs registerFloat:&customWidth default:400 forKey:@"customWidth"];
-	[prefs registerBool:&customVerticalOffsetEnabled default:FALSE forKey:@"customVerticalOffsetEnabled"];
-	[prefs registerFloat:&customVerticalOffset default:-80 forKey:@"customVerticalOffset"];
-	[prefs registerBool:&customHorizontalOffsetEnabled default:FALSE forKey:@"customHorizontalOffsetEnabled"];
-	[prefs registerFloat:&customHorizontalOffset default:0 forKey:@"customHorizontalOffset"];
-
-	[prefs registerBool:&hideInternal default:FALSE forKey:@"hideInternal"];
-	[prefs registerBool:&hidePercentageLabel default:FALSE forKey:@"hidePercentageLabel"];
-	[prefs registerBool:&hidePercent default:FALSE forKey:@"hidePercent"];
-	[prefs registerBool:&enableBoldPercentage default:TRUE forKey:@"enableBoldPercentage"];
-	[prefs registerBool:&roundOutlineCorners default:TRUE forKey:@"roundOutlineCorners"];
-	[prefs registerBool:&pulsateChargingOutline default:TRUE forKey:@"pulsateChargingOutline"];
-	[prefs registerBool:&keepDisconnectedDevices default:TRUE forKey:@"keepDisconnectedDevices"];
-	[prefs registerObject:&batteryTextColor default:@"system" forKey:@"batteryTextColor"];
-	[prefs registerObject:&customBatteryTextColor default:@"#ffffff" forKey:@"customBatteryTextColor"];
-	[prefs registerObject:&batteryGlyphBackgroundMode default:@"system" forKey:@"batteryGlyphBackgroundMode"];
-	[prefs registerBool:&customDeviceGlyphSizeEnabled default:FALSE forKey:@"customDeviceGlyphSizeEnabled"];
-	[prefs registerFloat:&customDeviceGlyphSize default:30 forKey:@"customDeviceGlyphSize"];
-	[prefs registerBool:&customBatteryCellSizeEnabled default:FALSE forKey:@"customBatteryCellSizeEnabled"];
-	[prefs registerFloat:&customBatteryCellSize default:50 forKey:@"customBatteryCellSize"];
-	[prefs registerBool:&customPercentageFontSizeEnabled default:FALSE forKey:@"customPercentageFontSizeEnabled"];
-	[prefs registerFloat:&customPercentageFontSize default:12 forKey:@"customPercentageFontSize"];
-	[prefs registerBool:&paddingBetweenGlyphAndLabelEnabled default:FALSE forKey:@"paddingBetweenGlyphAndLabelEnabled"];
-	[prefs registerFloat:&paddingBetweenGlyphAndLabel default:0 forKey:@"paddingBetweenGlyphAndLabel"];
-	[prefs registerBool:&horizontalSpacingBetweenDevicesEnabled default:FALSE forKey:@"horizontalSpacingBetweenDevicesEnabled"];
-	[prefs registerFloat:&horizontalSpacingBetweenDevices default:30 forKey:@"horizontalSpacingBetweenDevices"];
-
-	[prefs registerBool:&customGridSwitcherAppSizeEnabled default:FALSE forKey:@"customGridSwitcherAppSizeEnabled"];
-	[prefs registerFloat:&customGridSwitcherAppSize default:0.25 forKey:@"customGridSwitcherAppSize"];
-	[prefs registerBool:&customGridSwitcherSpacingEnabled default:FALSE forKey:@"customGridSwitcherSpacingEnabled"];
-	[prefs registerFloat:&customGridSwitcherSpacing default:40 forKey:@"customGridSwitcherSpacingEnabled"];
-
-	[prefs registerObject:&customConnectedDeviceColorMode default:@"default" forKey:@"customConnectedDeviceColorMode"];
-	[prefs registerObject:&customConnectedDeviceColor default:@"#33b5e5" forKey:@"customConnectedDeviceColor"];
-
-	[prefs registerObject:&customDisconnectedDeviceColorMode default:@"default" forKey:@"customDisconnectedDeviceColorMode"];
-	[prefs registerObject:&customDisconnectedDeviceColor default:@"#33b5e5" forKey:@"customDisconnectedDeviceColor"];
-
-	[prefs registerObject:&customLowPowerColorMode default:@"default" forKey:@"customLowPowerColorMode"];
-	[prefs registerObject:&customLowPowerColor default:@"#33b5e5" forKey:@"customLowPowerColor"];
-
-	[prefs registerObject:&customLowBatteryColorMode default:@"default" forKey:@"customLowBatteryColorMode"];
-	[prefs registerObject:&customLowBatteryColor default:@"#33b5e5" forKey:@"customLowBatteryColor"];
-
-	[prefs registerObject:&customChargingColorMode default:@"default" forKey:@"customChargingColorMode"];
-	[prefs registerObject:&customChargingColor default:@"#33b5e5" forKey:@"customChargingColor"];
+	isEnabled = [[prefs objectForKey:@"isEnabled"] boolValue];
+	switcherMode = [prefs objectForKey:@"switcherMode"];
+	selectedModule = [prefs objectForKey:@"moduleSelection"];
+	hideBackground = [[prefs objectForKey:@"hideBackground"] boolValue];
+	hideAppTitles = [[prefs objectForKey:@"hideAppTitles"] boolValue];
+	hideAppIcons = [[prefs objectForKey:@"hideAppIcons"] boolValue];
+	hideSuggestionBanner = [[prefs objectForKey:@"hideSuggestionBanner"] boolValue];
+	displayWithNoApps = [[prefs objectForKey:@"displayWithNoApps"] boolValue];
+	backgroundMode = [prefs objectForKey:@"backgroundMode"];
+	enableFlyInOut = [[prefs objectForKey:@"enableFlyInOut"] boolValue];
+	enableDelay = [[prefs objectForKey:@"enableDelay"] boolValue];
+	fadeInDelay = [[prefs objectForKey:@"fadeInDelay"] floatValue];
+	customHeightEnabled = [[prefs objectForKey:@"customHeightEnabled"] boolValue];
+	customHeight = [[prefs objectForKey:@"customHeight"] floatValue];
+	customWidthEnabled = [[prefs objectForKey:@"customWidthEnabled"] boolValue];
+	customWidth = [[prefs objectForKey:@"customWidth"] floatValue];
+	customVerticalOffsetEnabled = [[prefs objectForKey:@"customVerticalOffsetEnabled"] boolValue];
+	customVerticalOffset = [[prefs objectForKey:@"customVerticalOffset"] floatValue];
+	customHorizontalOffsetEnabled = [[prefs objectForKey:@"customHorizontalOffsetEnabled"] boolValue];
+	customHorizontalOffset = [[prefs objectForKey:@"customHorizontalOffset"] floatValue];
+	hideInternal = [[prefs objectForKey:@"hideInternal"] boolValue];
+	hidePercentageLabel = [[prefs objectForKey:@"hidePercentageLabel"] boolValue];
+	hidePercent = [[prefs objectForKey:@"hidePercent"] boolValue];
+	enableBoldPercentage = [[prefs objectForKey:@"enableBoldPercentage"] boolValue];
+	roundOutlineCorners = [[prefs objectForKey:@"roundOutlineCorners"] boolValue];
+	pulsateChargingOutline = [[prefs objectForKey:@"pulsateChargingOutline"] boolValue];
+	keepDisconnectedDevices = [[prefs objectForKey:@"keepDisconnectedDevices"] boolValue];
+	batteryTextColor = [prefs objectForKey:@"batteryTextColor"];
+	customBatteryTextColor = [prefs objectForKey:@"customBatteryTextColor"];
+	batteryGlyphBackgroundMode = [prefs objectForKey:@"batteryGlyphBackgroundMode"];
+	customDeviceGlyphSizeEnabled = [[prefs objectForKey:@"customDeviceGlyphSizeEnabled"] boolValue];
+	customDeviceGlyphSize = [[prefs objectForKey:@"customDeviceGlyphSize"] floatValue];
+	customBatteryCellSizeEnabled = [[prefs objectForKey:@"customBatteryCellSizeEnabled"] boolValue];
+	customBatteryCellSize = [[prefs objectForKey:@"customBatteryCellSize"] floatValue];
+	customPercentageFontSizeEnabled = [[prefs objectForKey:@"customPercentageFontSizeEnabled"] boolValue];
+	customPercentageFontSize = [[prefs objectForKey:@"customPercentageFontSize"] floatValue];
+	paddingBetweenGlyphAndLabelEnabled = [[prefs objectForKey:@"paddingBetweenGlyphAndLabelEnabled"] boolValue];
+	paddingBetweenGlyphAndLabel = [[prefs objectForKey:@"paddingBetweenGlyphAndLabel"] floatValue];
+	horizontalSpacingBetweenDevicesEnabled = [[prefs objectForKey:@"horizontalSpacingBetweenDevicesEnabled"] boolValue];
+	horizontalSpacingBetweenDevices = [[prefs objectForKey:@"horizontalSpacingBetweenDevices"] floatValue];
+	customGridSwitcherAppSizeEnabled = [[prefs objectForKey:@"customGridSwitcherAppSizeEnabled"] boolValue];
+	customGridSwitcherAppSize = [[prefs objectForKey:@"customGridSwitcherAppSize"] floatValue];
+	customGridSwitcherSpacingEnabled = [[prefs objectForKey:@"customGridSwitcherSpacingEnabled"] boolValue];
+	customGridSwitcherSpacing = [[prefs objectForKey:@"customGridSwitcherSpacing"] floatValue];
+	customConnectedDeviceColorMode = [prefs objectForKey:@"customConnectedDeviceColorMode"];
+	customConnectedDeviceColor = [prefs objectForKey:@"customConnectedDeviceColor"];
+	customDisconnectedDeviceColorMode = [prefs objectForKey:@"customDisconnectedDeviceColorMode"];
+	customDisconnectedDeviceColor = [prefs objectForKey:@"customDisconnectedDeviceColor"];
+	customLowPowerColorMode = [prefs objectForKey:@"customLowPowerColorMode"];
+	customLowPowerColor = [prefs objectForKey:@"customLowPowerColor"];
+	customLowBatteryColorMode = [prefs objectForKey:@"customLowBatteryColorMode"];
+	customLowBatteryColor = [prefs objectForKey:@"customLowBatteryColor"];
+	customChargingColorMode = [prefs objectForKey:@"customChargingColorMode"];
+	customChargingColor = [prefs objectForKey:@"customChargingColor"];
 }
 
 %ctor {
-	prefs = [[HBPreferences alloc] initWithIdentifier:@"com.atar13.vaonprefs"];
+	prefs = [[NSUserDefaults alloc] initWithSuiteName:@"com.atar13.vaonprefs"];
 	updateSettings();
 
 	if([switcherMode isEqual:@"grid"]){
 		customSwitcherStyle = 2;
+		currentSwitcherStyle = 2;
 	}else{
+		customSwitcherStyle = 0;
 		currentSwitcherStyle = 0;
 	}
 
-
-
-	if(kCFCoreFoundationVersionNumber > 1750){
-		ios13 = false;
-		ios14 = true;
-	} else if(kCFCoreFoundationVersionNumber > 1600) {
-		ios13 = true;
-		ios14 = false;
+	//Sketchy but it seems to work
+	if(kCFCoreFoundationVersionNumber > 1850) {
+		ios15 = true;
 	} else {
+		ios15 = false;
+	}
+	if(kCFCoreFoundationVersionNumber > 1750){
+		ios14 = true;
 		ios13 = false;
+	} else if(kCFCoreFoundationVersionNumber > 1600) {
 		ios14 = false;
+		ios13 = true;
+	} else {
+		ios14 = false;
+		ios13 = false;
 	}
 
 
@@ -1764,11 +1829,6 @@ void updateSettings(){
 		// NSLog(@"%s", "Vaon: Initializing ios 14 battery update hooks");
 
 	}
-
-	
-
-
-}
 /**
 Additional modules:
 favorite contacts or an option for recents
@@ -1779,3 +1839,4 @@ countdown
 airpod pro transparency and noise cancellation
 weather/AQI view that's similar to battery view
 **/
+}

@@ -433,22 +433,24 @@
 			<string>Contact</string>
 		</dict>
 		<dict>
-    		<key>big</key>
-   			 <true/>
-			<key>cellClass</key>
-			<string>HBTwitterCell</string>
-			<key>height</key>
-			<integer>56</integer>
+    		<key>cell</key>
+			<string>PSButtonCell</string>
 			<key>label</key>
 			<string>Anthony Tarbinian</string>
-			<key>user</key>
-			<string>atar137h</string>
-			<key>userID</key>
-			<string>964947766907568128</string>
-			<key>showAvatar</key>
-			<true/>
 			<key>action</key>
 			<string>twitter</string>
+			<key>icon</key>
+			<string>images/twitter/twitterIcon</string>
+		</dict>
+		<dict>
+    		<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>SingleKeycap</string>
+			<key>action</key>
+			<string>twitterKeycap</string>
+			<key>icon</key>
+			<string>images/twitter/twitterIconKeycap</string>
 		</dict>
 		<dict>
 			<key>cell</key>

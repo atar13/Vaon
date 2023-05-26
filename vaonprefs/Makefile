@@ -1,8 +1,3 @@
-ARCHS = arm64 arm64e
-SDKVERSION = 14.4
-TARGET := iphone:clang:13.0:latest
-SYSROOT = $(THEOS)/sdks/iPhoneOS14.4.sdk
-
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = VaonPrefs
@@ -12,7 +7,6 @@ VaonPrefs_FRAMEWORKS = UIKit
 VaonPrefs_PRIVATE_FRAMEWORKS = Preferences
 VaonPrefs_INSTALL_PATH = /Library/PreferenceBundles
 VaonPrefs_CFLAGS = -fobjc-arc
-VaonPrefs_EXTRA_FRAMEWORKS = Cephei CepheiPrefs
 VaonPrefs_LIBRARIES = colorpicker
 
 include $(THEOS_MAKE_PATH)/bundle.mk

@@ -1,4 +1,3 @@
-#import <Cephei/HBPreferences.h>
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 #import <SpringBoard/SpringBoard.h>
@@ -71,7 +70,9 @@
 @end
 
 @interface BCBatteryDeviceController : NSObject
+// sharedInstance is not available in iOS 15
 +(id)sharedInstance;
++(id)_sharedPowerSourceController;
 -(NSArray *)connectedDevices;
 @property (setter=_setSortedDevices:,getter=_sortedDevices,nonatomic,retain) NSArray * sortedDevices;                                                 
 // -(id)_sortedDevices;
