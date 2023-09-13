@@ -6,22 +6,6 @@ NSUserDefaults *prefs;
 NSArray *rootPreferenceKeys;
 NSArray *batteryPreferenceKeys;
 
-//Function to check if an alias exists at a path
-BOOL aliasExistsAtPath(NSString *path) {
-    NSURL *url = [NSURL fileURLWithPath:path];
-    NSError *error;
-    BOOL isAlias = [url checkResourceIsReachableAndReturnError:&error];
-    
-    if (isAlias) {
-        return YES;
-    } else if (!isAlias && error.code == NSFileReadNoSuchFileError) {
-        return NO;
-    } else {
-        NSLog(@"Error: %@", error);
-        return NO;
-    }
-}
-
 @implementation BatteryColorPreferenceController
 
 	// -(id)init {
@@ -43,11 +27,7 @@ BOOL aliasExistsAtPath(NSString *path) {
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		if (aliasExistsAtPath(@"/var/jb")){
-			posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
-		} else{
-			posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
-		}
+		posix_spawn(&pid, ROOT_PATH("/usr/bin/killall"), NULL, NULL, (char* const*)args, NULL);
 	}
 
 	-(void)askBeforeRespring {
@@ -113,11 +93,7 @@ BOOL aliasExistsAtPath(NSString *path) {
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		if (aliasExistsAtPath(@"/var/jb")){
-			posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
-		} else{
-			posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
-		}
+		posix_spawn(&pid, ROOT_PATH("/usr/bin/killall"), NULL, NULL, (char* const*)args, NULL);
 	}
 
 	-(void)askBeforeRespring {
@@ -206,11 +182,7 @@ BOOL aliasExistsAtPath(NSString *path) {
 	-(void)respring {
 		pid_t pid;
 		const char* args[] = {"killall", "-9", "backboardd", NULL};
-		if (aliasExistsAtPath(@"/var/jb")){
-			posix_spawn(&pid, "/var/jb/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
-		} else{
-			posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char* const*)args, NULL);
-		}
+		posix_spawn(&pid, ROOT_PATH("/usr/bin/killall"), NULL, NULL, (char* const*)args, NULL);
 	}
 	-(void)askBeforeRespring {
 		UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Are you sure you want to respring?" message:@"" preferredStyle:UIAlertControllerStyleAlert];
