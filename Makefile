@@ -21,3 +21,9 @@ Vaon_FRAMEWORKS += QuartzCore
 include $(THEOS_MAKE_PATH)/tweak.mk
 SUBPROJECTS += vaonprefs
 include $(THEOS_MAKE_PATH)/aggregate.mk
+
+final_package_rootful: clean 
+	$(MAKE) package FINALPACKAGE=1
+
+final_package_rootless: clean 
+	$(MAKE) package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
